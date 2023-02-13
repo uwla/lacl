@@ -1,0 +1,17 @@
+{
+    "name": "uwla/lacl",
+    "description": "Laravel Access Control List",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Uwla\\Lacl\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "uwla"
+        }
+    ],
+    "require": {}
+}
