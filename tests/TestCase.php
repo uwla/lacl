@@ -11,6 +11,21 @@ abstract class TestCase extends BaseTestCase
     use RefreshDatabase, WithFaker;
 
     /**
+     * Get package providers.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     *
+     * @return array<\Illuminate\Support\ServiceProvider>
+     */
+    protected function getPackageProviders($app)
+    {
+        return [
+            'Laravel\Sanctum\SanctumServiceProvider', // authentication
+            'Uwla\Lacl\Providers\RouteServiceProvider', // authorization
+        ];
+    }
+
+    /**
      * Define database migrations.
      *
      * @return void

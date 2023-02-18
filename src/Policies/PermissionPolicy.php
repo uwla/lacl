@@ -2,7 +2,7 @@
 
 namespace Uwla\Lacl\Policies;
 
-use Uwla\Lacl\Permission;
+use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Contracts\ResourcePolicy;
 use Uwla\Lacl\Traits\ResourcePolicy as HandlesPermissions;
 use Illuminate\Auth\Access\HandlesAuthorization;

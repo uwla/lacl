@@ -1,13 +1,14 @@
 <?php
 
-namespace Uwla\Lacl\Tests\Http\Controllers;
+namespace Uwla\Lacl\Http\Controllers;
 
-use Uwla\Lacl\Tests\Http\Requests\StoreRoleRequest;
-use Uwla\Lacl\Tests\Http\Requests\UpdateRoleRequest;
+use Uwla\Lacl\Http\Requests\StoreRoleRequest;
+use Uwla\Lacl\Http\Requests\UpdateRoleRequest;
 use Uwla\Lacl\Models\Role;
 
 class RoleController extends Controller
 {
+
     /**
      * Create the controller instance.
      *

@@ -2,13 +2,13 @@
 
 namespace Uwla\Lacl\Traits;
 
+use BadMethodCallException;
+use Illuminate\Database\Eloquent\Collection;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
 use Uwla\Lacl\Models\User;
 use Uwla\Lacl\Models\UserRole;
-use BadMethodCallException;
-use Illuminate\Database\Eloquent\Collection;
 
 Trait HasPermission
 {
@@ -171,7 +171,7 @@ Trait HasPermission
     /**
      * get the permissions associated with this object
      *
-     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Permission>
+     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
       */
     public function getPermissions()
     {

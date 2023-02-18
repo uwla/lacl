@@ -15,4 +15,18 @@ class UserPolicy implements ResourcePolicy
     {
         return User::class;
     }
+
+    // /**
+    //  * Determine whether the user can update the model.
+    //  *
+    //  * @param  User  $user
+    //  * @param  \Illuminate\Database\Eloquent\Model  $model
+    //  * @return \Illuminate\Auth\Access\Response|bool
+    //  */
+    // public function view(User $user, User $model)
+    // {
+    //     echo "e ai irmao\n";
+    //     ob_flush();
+    //     return $this->userHasPermission($user, ['update', 'updateAny'], [$model->id, null]);
+    // }
 }

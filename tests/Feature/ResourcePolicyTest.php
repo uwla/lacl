@@ -3,9 +3,6 @@
 namespace Tests\Feature;
 
 use Uwla\Lacl\Database\Seeders\DatabaseSeeder;
-use Uwla\Lacl\Http\Controllers\PermissionController;
-use Uwla\Lacl\Http\Controllers\RoleController;
-use Uwla\Lacl\Http\Controllers\UserController;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\User;
@@ -26,22 +23,6 @@ class ResourcePolicyTest extends TestCase
      * @var \Uwla\Lacl\Models\User
     */
     private $role;
-
-    /**
-     * Define routes setup.
-     *
-     * @param  \Illuminate\Routing\Router  $router
-     *
-     * @return void
-     */
-    protected function defineRoutes($router)
-    {
-        $router->group(['middleware' => 'auth:sanctum'], function() use ($router) {
-            $router->apiResource('permission', PermissionController::class);
-            $router->apiResource('role', RoleController::class);
-            $router->apiResource('user', UserController::class);
-        });
-    }
 
     /**
      * Set up this test instance
@@ -72,7 +53,7 @@ class ResourcePolicyTest extends TestCase
     }
 
     /**
-     * Grant a privilege for making requests
+     * Grant a privilege for making requests while revoking previous ones.
      *
      * @param string $name      The name of the permission
      * @param string $model     The name of the resource type
@@ -127,15 +108,18 @@ class ResourcePolicyTest extends TestCase
         $uid = User::inRandomOrder()->first()->id;
 
         // attempt request as unauthorized user
-        $this->request()->get("/user/{$uid}")->assertStatus(403);
+        $response = $this->request()->get("/user/{$uid}");
+        $response->assertStatus(403);
 
         // attempt request as authorized user
         $this->grant_privilege("user.view", model_id: $uid);
-        $this->request()->get("/user/{$uid}")->assertStatus(200);
+        $response = $this->request()->get("/user/{$uid}");
+        $response->assertStatus(200);
 
         // attempt request again, but using different permissions
         $this->grant_privilege('user.viewAny');
-        $this->request()->get("/user/{$uid}")->assertStatus(200);
+        $response = $this->request()->get("/user/{$uid}");
+        $response->assertStatus(200);
     }
 
     /**
@@ -152,11 +136,13 @@ class ResourcePolicyTest extends TestCase
         $attributes['password'] = 'password';
 
         // attempt request as unauthorized user
-        $this->request()->postJson('/user', $attributes)->assertStatus(403);
+        $response = $this->request()->postJson('/user', $attributes);
+        $response->assertStatus(403);
 
         // attempt request as authorized user
         $this->grant_privilege('user.create');
-        $this->request()->postJson('/user', $attributes)->assertStatus(201);
+        $response = $this->request()->postJson('/user', $attributes);
+        $response->assertStatus(201);
     }
 
     /**
@@ -175,15 +161,18 @@ class ResourcePolicyTest extends TestCase
         $attributes['password'] = 'password';
 
         // attempt request as unauthorized user
-        $this->request()->putJson("/user/{$uid}", $attributes)->assertStatus(403);
+        $response = $this->request()->putJson("/user/{$uid}", $attributes);
+        $response->assertStatus(403);
 
         // attempt request as authorized user
         $this->grant_privilege('user.update', model_id: $uid);
-        $this->request()->putJson("/user/${uid}", $attributes)->assertStatus(200);
+        $response = $this->request()->putJson("/user/${uid}", $attributes);
+        $response->assertStatus(200);
 
         // attempt request again, but using different permissions
         $this->grant_privilege('user.updateAny');
-        $this->request()->putJson("/user/${uid}", $attributes)->assertStatus(200);
+        $response = $this->request()->putJson("/user/${uid}", $attributes);
+        $response->assertStatus(200);
     }
 
     /**
@@ -197,15 +186,18 @@ class ResourcePolicyTest extends TestCase
         $uid = User::inRandomOrder()->first()->id;
 
         // attempt request as unauthorized user
-        $this->request()->delete("/user/{$uid}")->assertStatus(403);
+        $response = $this->request()->delete("/user/{$uid}");
+        $response->assertStatus(403);
 
         // attempt request as authorized user
         $this->grant_privilege("user.delete", model_id: $uid);
-        $this->request()->delete("/user/{$uid}")->assertStatus(200);
+        $response = $this->request()->delete("/user/{$uid}");
+        $response->assertStatus(200);
 
         // attempt request again, but using different permissions
         $uid = User::inRandomOrder()->first()->id;
         $this->grant_privilege('user.deleteAny');
-        $this->request()->delete("/user/{$uid}")->assertStatus(200);
+        $response = $this->request()->delete("/user/{$uid}");
+        $response->assertStatus(200);
     }
 }

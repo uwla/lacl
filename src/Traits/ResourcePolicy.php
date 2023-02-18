@@ -2,7 +2,6 @@
 
 namespace Uwla\Lacl\Traits;
 
-// use Uwla\Lacl\Models\User;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +11,9 @@ Trait ResourcePolicy
      * Determine whether the user has any of the given permissions associated
      * with the given models.
      *
-     * @param  User  $user
+     * @param  User          $user          the authenticated user
+     * @param  array<string> $permissions   the name of the permissions
+     * @param  array<int>    $model         the id of the models
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function userHasPermission(User $user, $permissions, $models)
@@ -54,7 +55,6 @@ Trait ResourcePolicy
      */
     public function view(User $user, Model $model)
     {
-
         return $this->userHasPermission($user, ['view', 'viewAny'], [$model->id, null]);
     }
 

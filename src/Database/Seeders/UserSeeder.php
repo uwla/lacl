@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        \Uwla\Lacl\Models\User::factory(15)->create();
+        User::factory(15)->create();
         $users = User::all();
         $roles = Role::all();
         foreach ($users as $user)
