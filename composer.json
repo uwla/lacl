@@ -16,14 +16,14 @@
         }
     ],
     "require": {
-        "illuminate/database": "^10.0"
+        "illuminate/database": "^10.0",
+        "illuminate/auth": "^10.0"
     },
     "require-dev": {
-        "illuminate/auth": "^10.0",
         "laravel/sanctum": "^3.2",
+        "laravel/ui": "^4.2",
         "orchestra/testbench": "^8.0",
-        "phpunit/phpunit": "^10.0",
-        "laravel/ui": "^4.2"
+        "phpunit/phpunit": "^10.0"
     },
     "scripts": {
         "test": "vendor/bin/phpunit"
