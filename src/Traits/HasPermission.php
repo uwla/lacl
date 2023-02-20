@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
-use Uwla\Lacl\Models\User;
+use Illuminate\Foundation\Auth\User;
 use Uwla\Lacl\Models\UserRole;
 
 Trait HasPermission
