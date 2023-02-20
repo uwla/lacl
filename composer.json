@@ -27,5 +27,12 @@
     },
     "scripts": {
         "test": "vendor/bin/phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Uwla\\Lacl\\AclServiceProvider"
+            ]
+        }
     }
 }
