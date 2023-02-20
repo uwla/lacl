@@ -168,12 +168,12 @@ Delete permission (returns `@void`):
 
 ```php
 // single permission
-$role->delPermission($role);      // using Eloquent model
-$role->delPermission('editor');   // using string name
+$role->delPermission($permission);  // using Eloquent model
+$role->delPermission('view mails'); // using string name
 
 // multiple permissions
 $role->delPermission($permissions);               // using Eloquent Collection
-$role->delPermission(['editor', 'manager']);      // using strig names
+$role->delPermission(['user.view', 'user.del']);  // using strig names
 
 // all permissions
 $role->delAllPermissions();
@@ -182,17 +182,17 @@ $role->delAllPermissions();
 Has role (returns `@bool`):
 
 ```php
-// check whether the role has a role
-$role->hasPermission($role);      // using Eloquent model
-$role->hasPermission('editor');   // using string name
+// check whether the role has a permission
+$role->hasPermission($permission);    // using Eloquent model
+$role->hasPermission('user.view');    // using string name
 
 // check whether the role has all of the given permissions
 $role->hasPermissions($permissions);              // using Eloquent Collection
-$role->hasPermissions(['editor', 'manager']);     // using strig names
+$role->hasPermissions(['user.view', 'user.del']); // using strig names
 
 // check whether the role has at least one of the given permissions
-$role->hasAnyPermissions($permissions);           // using Eloquent Collection
-$role->hasAnyPermissions(['editor', 'manager']);  // using strig names
+$role->hasAnyPermissions($permissions);               // using Eloquent Collection
+$role->hasAnyPermissions(['user.view', 'user.del']);  // using strig names
 ```
 
 Count how many permissions the role has (returns `@int`):
