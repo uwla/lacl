@@ -20,7 +20,8 @@ class Permission extends Model
     public $fillable = [
         'name',
         'model',
-        'model_id'
+        'model_id',
+        'description'
     ];
 
     public static function getPermissionsByName($names, $modelType, $models)
@@ -72,6 +73,7 @@ class Permission extends Model
 
     /**
      * Create a new factory instance for the model.
+     * This is used for testing. End-users are encouraged to change it.
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory
      */

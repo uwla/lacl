@@ -20,6 +20,7 @@ class Role extends Model
 
     /**
      * Create a new factory instance for the model.
+     * This is used for testing. End-users are encouraged to change it.
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory
      */
