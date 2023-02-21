@@ -17,12 +17,30 @@ Trait HasPermission
      * Some methods should only be called from a Role.
      *
      * @return void
-     * @throws BadMethodCallException
      */
-    private function ensureIsInstanceOfRole()
+    private function getSelfRoleId()
     {
-        if (! $this instanceof Role)
-            throw new BadMethodCallException("Shall only be called upon a role");
+        if ($this instanceof Role)
+            return $this->id;
+
+        if ($this instanceof User)
+        {
+            $roleName = $this::class . ':' . $this->id;
+
+            // get the role that uniquely represents this user
+            $role = Role::where('name', $roleName)->first();
+
+            // if null, create it
+            if ($role == null)
+                $role = Role::create(['name' => $roleName]);
+
+            // return it
+            return $role->id;
+        }
+
+        throw new BadMethodCallException(
+            "HasPermission shall be used only with Role or User class"
+        );
     }
 
     /**
@@ -97,15 +115,13 @@ Trait HasPermission
      */
     public function addPermissions($permissions)
     {
-        $this->ensureIsInstanceOfRole();
-
         $permissions = $this->normalizePermissions($permissions);
         $toAdd = [];
         foreach ($permissions as $permission)
         {
             $toAdd[] = [
                 'permission_id' => $permission->id,
-                'role_id' => $this->id
+                'role_id' => $this->getSelfRoleId()
             ];
         }
 
@@ -131,14 +147,12 @@ Trait HasPermission
      */
     public function delPermissions($permissions)
     {
-        $this->ensureIsInstanceOfRole();
-
         // get ids of the permissions
         $ids = $this->getPermissionIds($permissions);
 
         // delete current role permissions
         RolePermission::query()
-            ->where('role_id', $this->id)
+            ->where('role_id', $this->getSelfRoleId())
             ->whereIn('permission_id', $ids)
             ->delete();
     }
@@ -151,8 +165,7 @@ Trait HasPermission
      */
     public function delAllPermissions()
     {
-        $this->ensureIsInstanceOfRole();
-        RolePermission::where('role_id', $this->id)->delete();
+        RolePermission::where('role_id', $this->getSelfRoleId())->delete();
     }
 
     /**
@@ -163,7 +176,6 @@ Trait HasPermission
       */
     public function setPermissions($permissions)
     {
-        $this->ensureIsInstanceOfRole();
         $this->delAllPermissions();
         $this->addPermissions($permissions);
     }
@@ -184,6 +196,26 @@ Trait HasPermission
         // get the ids of the permissions associated with this object's roles
         $ids = RolePermission::query()
             ->whereIn('role_id', $roleIds)
+            ->get()
+            ->pluck('permission_id')
+            ->toArray();
+
+        // retrieve the permissions by id
+        return Permission::whereIn('id', $ids)->get();
+    }
+
+    /**
+     * get the permissions associated with this user only, not with its roles.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
+     */
+    public function getUserPermissions()
+    {
+        if (! $this instanceof User)
+            throw new BadMethodCallException("Should only be called upon a User.");
+
+        $ids = RolePermission::query()
+            ->whereIn('role_id', $this->getSelfRoleId())
             ->get()
             ->pluck('permission_id')
             ->toArray();
