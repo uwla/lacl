@@ -32,7 +32,10 @@ Trait HasPermission
 
             // if null, create it
             if ($role == null)
+            {
                 $role = Role::create(['name' => $roleName]);
+                $this->addRole($role);
+            }
 
             // return it
             return $role->id;
