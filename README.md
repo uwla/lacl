@@ -247,6 +247,4 @@ models, such as deleting, updating, fetching, searching, etc.
 A list of intended features to add:
 
 - demo app
-- trait for automating creating per-model permissions
-- self-destructed model-permissions when model is deleted
 - maybe blade components
