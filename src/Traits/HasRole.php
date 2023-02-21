@@ -19,7 +19,7 @@ Trait HasRole
     private function getBaseQuery()
     {
         if ($this instanceof User)
-            return UserRole::where('user_id', $this->id);
+            return UserRole::where([['user_id', '=', $this->id], ['role_id', '!=', $this->getSelfRoleId()]]);
         else if ($this instanceof Permission)
             return RolePermission::where('permission_id', $this->id);
     }
@@ -226,9 +226,7 @@ Trait HasRole
             throw new NoSuchRoleException("Roles provided are not roles");
 
         $roleIds = $roles->pluck('id')->toArray();
-        $matchedRoles = $this->getBaseQuery()
-                             ->whereIn('role_id', $roleIds)
-                             ->get();
+        $matchedRoles = $this->getBaseQuery()->whereIn('role_id', $roleIds)->get();
 
         return $matchedRoles->count();
     }
