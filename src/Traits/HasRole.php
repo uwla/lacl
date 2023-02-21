@@ -6,8 +6,8 @@ use Uwla\Lacl\Exceptions\NoSuchRoleException;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
-use Illuminate\Foundation\Auth\User;
 use Uwla\Lacl\Models\UserRole;
+use Illuminate\Foundation\Auth\User;
 
 Trait HasRole
 {

@@ -235,3 +235,4 @@ class HasPermissionTest extends TestCase
     }
 }
 
+?>

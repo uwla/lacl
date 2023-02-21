@@ -2,15 +2,17 @@
 
 namespace Uwla\Lacl\Models;
 
-use Uwla\Lacl\Traits\HasRole;
-use Uwla\Lacl\Traits\HasPermission;
-use Uwla\Lacl\Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Uwla\Lacl\Contracts\HasPermission as HasPermissionContract;
+use Uwla\Lacl\Contracts\HasRole as HasRoleContract;
+use Uwla\Lacl\Database\Factories\UserFactory;
+use Uwla\Lacl\Traits\HasPermission;
+use Uwla\Lacl\Traits\HasRole;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasRoleContract, HasPermissionContract
 {
     use HasApiTokens, HasFactory, Notifiable, HasPermission, HasRole;
 

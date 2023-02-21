@@ -4,11 +4,12 @@ namespace Uwla\Lacl\Models;
 
 use Uwla\Lacl\Traits\HasRole;
 use Uwla\Lacl\Database\Factories\PermissionFactory;
+use Uwla\Lacl\Contracts\Permission as PermissionContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
-class Permission extends Model
+class Permission extends Model implements PermissionContract
 {
     use HasFactory, HasRole;
 

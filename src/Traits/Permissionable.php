@@ -2,8 +2,9 @@
 
 namespace Uwla\Lacl\Traits;
 
+use Illuminate\Database\Eloquent\Collection;
 use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Traits\HasPermission;
+use Uwla\Lacl\Contracts\HasPermission;
 
 Trait Permissionable
 {
@@ -29,10 +30,11 @@ Trait Permissionable
      * @param string $permissionName
      * @return void
      */
-    protected function formatPermissionName($permissionName)
+    public function getPermissionPrefix()
     {
-        $prefix = strtolower(end(explode('\\', $this::class)));
-        return $prefix . '.' . strtolower($permissionName);
+        // @see https://stackoverflow.com/questions/4636166/only-variables-should-be-passed-by-reference
+        $tmp = explode('\\', $this::class);
+        return strtolower(end($tmp));
     }
 
     /**
@@ -46,7 +48,7 @@ Trait Permissionable
         return Permission::firstOrCreate([
             'model' => $this::class,
             'model_id' => $this->id,
-            'name' => $this->formatPermissionName($permissionName),
+            'name' => $this->getPermissionPrefix() . '.' . $permissionName,
         ]);
     }
 
@@ -61,7 +63,7 @@ Trait Permissionable
         return Permission::where([
             'model' => $this::class,
             'model_id' => $this->id,
-            'name' => $this->formatPermissionName($permissionName),
+            'name' => $this->getPermissionPrefix() . '.' . $permissionName,
         ])->first();
     }
 
@@ -76,7 +78,7 @@ Trait Permissionable
         Permission::where([
             'model' => $this::class,
             'model_id' => $this->id,
-            'name' => $this->formatPermissionName($permissionName),
+            'name' => $this->getPermissionPrefix($permissionName) . '.' . $permissionName,
         ])->delete();
     }
 
@@ -137,6 +139,20 @@ Trait Permissionable
     }
 
     /**
+     * Create the permission associated with this model.
+     *
+     * @return Permission
+     */
+    public function createCrudPermissions(): Collection
+    {
+        return new Collection([
+            $this->createViewPermission(),
+            $this->createUpdatePermission(),
+            $this->createDeletePermission(),
+        ]);
+    }
+
+    /**
      * Get the view permission associated with this model.
      *
      * @return Permission
@@ -164,6 +180,20 @@ Trait Permissionable
     public function getDeletePermission(): Permission
     {
         return $this->getPermission('delete');
+    }
+
+    /**
+     * Get the permissions associated with this model.
+     *
+     * @return Permission
+     */
+    public function getCrudPermissions(): Collection
+    {
+        return new Collection([
+            $this->getViewPermission(),
+            $this->getUpdatePermission(),
+            $this->getDeletePermission(),
+        ]);
     }
 
     /**
@@ -197,6 +227,18 @@ Trait Permissionable
     }
 
     /**
+     * Delete the permissions associated with this model.
+     *
+     * @return void
+     */
+    public function deleteCrudPermissions()
+    {
+        $this->deleteViewPermission();
+        $this->deleteUpdatePermission();
+        $this->deleteDeletePermission();
+    }
+
+    /**
      * attach the view permission associated with this model to the given model.
      *
      * @return void
@@ -227,6 +269,18 @@ Trait Permissionable
     }
 
     /**
+     * Attach the permissions associated with this model to the given model.
+     *
+     * @return void
+     */
+    public function attachCrudPermissions(HasPermission $model)
+    {
+        $this->attachViewPermission($model);
+        $this->attachUpdatePermission($model);
+        $this->attachDeletePermission($model);
+    }
+
+    /**
      * revoke the view permission associated with this model to the given model.
      *
      * @return void
@@ -254,4 +308,17 @@ Trait Permissionable
     public function revokeDeletePermission(HasPermission $model)
     {
         return $this->revokePermission($model, 'delete');
-    }}
+    }
+
+    /**
+     * Revoke the permissions associated with this model to the given model.
+     *
+     * @return void
+     */
+    public function revokeCrudPermissions(HasPermission $model)
+    {
+        $this->revokeViewPermission($model);
+        $this->revokeUpdatePermission($model);
+        $this->revokeDeletePermission($model);
+    }
+}
