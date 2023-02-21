@@ -14,6 +14,16 @@ to, for example, define authorization for a user to edit all  articles  or  just
 the articles he has created  by  creating  permissions  for  those  articles  in
 particular. This is better than adding a 'user_id' column in the articles table.
 
+## Features
+
+- Role-based access control list
+- Per-role permission: assign permission to a role
+- Per-user permission: assign permission to a user
+- Per-model permission: associate a unique model in DB with a permission
+- Automated Laravel Policies for controllers using per-model permissions
+- Arbitrary permissions
+- Arbitrary roles
+
 ## Installation
 
 Install using composer:
@@ -130,10 +140,11 @@ $user->countRoles();
 
 ### HasPermission
 
-Permissions are used by `Role`. They are not used directly by `User`, but
-indirectly via the user's roles.
+Here, we will assign permissions to a  role,  but  they  can  also  be  assigned
+directly to a user.
 
-Add a permission or multiple permissions to role (the permissions must already exist):
+Add a permission or multiple permissions to role (the permissions  must  already
+exist):
 
 ```php
 // single role
@@ -224,11 +235,11 @@ $permission = Permission::create([
 ])
 
 // now you could do something like
-$userRole->add($permission); // one of the user's role
+$user->add($permission);
 $user->hasPermission('article.edit', Article::class, $article->id); // will return true
 ```
 
-You can perform any operations on `Permission` that are supported by Eloquent
+You can perform any operations on `Permission` that are  supported  by  Eloquent
 models, such as deleting, updating, fetching, searching, etc.
 
 ## Roadmap
@@ -236,6 +247,6 @@ models, such as deleting, updating, fetching, searching, etc.
 A list of intended features to add:
 
 - demo app
-- per-user permission
+- trait for automating creating per-model permissions
 - self-destructed model-permissions when model is deleted
 - maybe blade components
