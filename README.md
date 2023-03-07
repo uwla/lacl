@@ -242,9 +242,178 @@ $user->hasPermission('article.edit', Article::class, $article->id); // will retu
 You can perform any operations on `Permission` that are  supported  by  Eloquent
 models, such as deleting, updating, fetching, searching, etc.
 
+### Per model permissions
+
+The Trait `Permissionable` provides an interface for managing  CRUD  permissions
+associated with a given model. In  the  following  examples,  we  will  use  the
+`Article` model to illustrate how would we manage per-article permissions.
+
+First, make sure the class do use the trait.
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Uwla\Lacl\Contracts\Permissionable as PermissionableContract;
+use Uwla\Lacl\Traits\Permissionable;
+
+class Article extends Model implements PermissionableContract
+{
+    use Permissionable;
+}
+```
+
+Here is a summary of the auxilary methods provided by `Permissionable`:
+
+| Name                       | Description                                                                        |
+| :------------------------- | :----------------------------------------------------------------------------      |
+| `createViewPermission`     | Create permission for viewing the model.                                           |
+| `createUpdatingPermission` | Create permission for updating the model.                                          |
+| `createDeletePermission`   | Create permission for deleting the model.                                          |
+| `createCrudPermissions`    | Create permissions to view, update, delete the model.                              |
+| `getViewPermission`        | Get the permission for viewing the model.                                          |
+| `getUpdatingPermission`    | Get the permission for updating the model.                                         |
+| `getDeletePermission`      | Get the permission for deleting the model.                                         |
+| `getCrudPermissions`       | Get the permissions to view, update, delete the model.                             |
+| `deleteViewPermission`     | Delete the permission for viewing the model.                                       |
+| `deleteUpdatingPermission` | Delete the permission for updating the model.                                      |
+| `deleteDeletePermission`   | Delete the permission for deleting the model.                                      |
+| `deleteCrudPermissions`    | Delete the permissions to view, update, delete the model.                          |
+| `attachViewPermission`     | Attach the permission for viewing the model to the given user/role.                |
+| `attachUpdatingPermission` | Attach the permission for updating the model to the given user/role.               |
+| `attachDeletePermission`   | Attach the permission for deleting the model to the given user/role.               |
+| `attachCrudPermissions`    | Attach the permissions to view, update, delete the model to the given user/role.   |
+| `revokeViewPermission`     | Revoke the permission for viewing the model from the given user/role.              |
+| `revokeUpdatingPermission` | Revoke the permission for updating the model from the given user/role.             |
+| `revokeDeletePermission`   | Revoke the permission for deleting the model from the given user/role.             |
+| `revokeCrudPermissions`    | Revoke the permissions to view, update, delete the model from the given user/role. |
+
+As you can see, the per-model permissions are 'view',  'update',  and  'delete'.
+This is because the most generic actions a user can perform on  a  single  model
+is to view it, update it, or delete  it.  It  also  facilitates  automation  and
+integration with Laravel Policies.
+
+The create-permission  helpers  will  either  fetch  from  or  insert  into  the
+database the associated permission, depending on whether it  already  exists  or
+not. The get-permissions helpers assume the permission exists in  DB,  and  then
+try to fetch. The delete-permission helpers will try to delete  the  permissions
+in DB, but does not assume they already exist.  The  attach-permmission  helpers
+will assign the permissions to  the  user  or  to  the  given  user/role,  which
+assumes the permissions already exist (if they don't exist,  an  Error  will  be
+thrown). The revoke-permission helpers try to revoke  the  permission  from  the
+user/role; it  assumes  the  permissions  exist  but  it  does  not  assume  the
+user/role has access to those permissions.
+
+Create crud permission (or fetch them, if already exist) for the article:
+
+```php
+$article = Article::find(1);
+$viewPermission = $article->createViewPermission();
+$updatePermission = $article->createUpdatePermission();
+$deletePermission = $article->createDeletePermission();
+
+// or, more simply
+$crudPermissions = $article->createCrudPermissions();
+```
+
+Get the permissions, assuming they were already created before:
+
+```php
+$article = Article::find(1);
+$viewPermission = $article->getViewPermission();
+$updatePermission = $article->getUpdatePermission();
+$deletePermission = $article->getDeletePermission();
+
+// or, more simply
+$crudPermissions = $article->getCrudPermissions();
+```
+
+Delete the permissions (they may exist or not).
+
+```php
+$article = Article::find(1);
+$article->deleteViewPermission();
+$article->deleteUpdatePermission();
+$article->deleteDeletePermission();
+
+// or, more simply
+$article->deleteCrudPermissions();
+```
+
+Attach the permissions to the user:
+
+```php
+// while you could fetch the permissions manually and then attach it to the user or role
+$viewPermission = $article->getViewPermission();
+$role->addPermission($viewPermission); // assign to a role
+$user->addPermission($viewPermission); // assign to a specific user
+
+$crudPermissions = $article->getCrudPermissions();
+$user->addPermissions($crudPermissions);
+$role->addPermissions($crudPermissions);
+
+// it is easier to attach them via the model
+$article->attachViewPermission($role);
+$article->attachViewPermission($user);
+
+// attach all crud permissions to the given user/role
+$article->attachCrudPermissions($user);
+$article->attachCrudPermissions($role);
+```
+
+Revoking permissions is done in the same way:
+
+```php
+// while you could fetch the permissions manually and then revoke from the user or role
+$viewPermission = $article->getViewPermission();
+$role->delPermission($viewPermission); // revoke from a role
+$user->delPermission($viewPermission); // revoke from a specific user
+
+$crudPermissions = $article->getCrudPermissions();
+$user->delPermissions($crudPermissions);
+$role->delPermissions($crudPermissions);
+
+// it is easier to revoke them via the model
+$article->revokeViewPermission($role);
+$article->revokeViewPermission($user);
+
+// revoke all crud permissions to the given user/role
+$article->revokeCrudPermissions($user);
+$article->revokeCrudPermissions($role);
+```
+
+For now, to check if the user has a permission to view/update/delete the model,
+you could do the following:
+
+```php
+if ($user->hasPermission($article->getViewPermission())
+{
+    // user can view the article
+    return new Response($article);
+}
+
+if ($user->hasPermission($article->getDeletePermission())
+{
+    // user can delete the article
+    $article->delete();
+    return new Response(['success' => true]);
+}
+```
+
+Also, it is important to remember that the user permissions are all  permissions
+assigned specifically to him plus the permissions assigned to any role  he  has.
+Therefore, it the user does not  have  a  direct  permission  to  the  view  the
+article, but one of its role has, the user will also have that permission.
+
 ## Roadmap
 
-A list of intended features to add:
+A list of intended things to do:
 
 - demo app
+- better interface to manage per-model permissions
+    - check user permission from the user instead of from the model
+    - get the models the user has permission to perform an action?
 - maybe blade components
+- more tests?
