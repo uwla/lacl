@@ -103,6 +103,18 @@ Trait HasPermission
     }
 
     /**
+     * Guess the name of the permission called upon dynamic method.
+     *
+     * @param  string $remainingMethodName The method name after removing the prefix
+     * @return string
+     */
+    protected function guessPermissionName($remainingMethodName)
+    {
+        // by the default, just lower case the first letter of it
+        return Str::lcfirst($remainingMethodName);
+    }
+
+    /**
      * add single permission
      *
      * @param mixed $permission
@@ -272,7 +284,8 @@ Trait HasPermission
             return parent::__call($name, $arguments);
 
         // get the name of the permission called after it
-        $permissionName = Str::lcfirst(Str::after($name, $prefix));
+        $suffix = Str::after($name, $prefix);
+        $permissionName = $this->guessPermissionName($suffix);
         if (empty($arguments))
             return $this->hasPermission($permissionName);
 
