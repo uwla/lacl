@@ -133,28 +133,34 @@ class HasPermissionTest extends TestCase
     }
 
     /**
-     * Test having the given permission dynamically,
+     * Test dynamic permissions
      *
      * @return void
      */
-    public function test_has_permission_dynamically()
+    public function test_dynamic_permissions()
     {
         $role = Role::factory()->createOne();
         $user = User::factory()->createOne();
-        $permission1 = Permission::create(['name' => 'sendEmails']);
-        $permission2 = Permission::create(['name' => 'createPosts']);
+        Permission::create(['name' => 'sendEmails']);
+        Permission::create(['name' => 'createPosts']);
 
         $user->addRole($role);
-        $this->assertFalse($role->hasPermissionToSendEmails());
-        $this->assertFalse($user->hasPermissionToSendEmails());
-        $this->assertFalse($role->hasPermissionToCreatePosts());
-        $this->assertFalse($user->hasPermissionToCreatePosts());
 
-        $role->addPermissions([$permission1, $permission2]);
+        // add the permissions
+        $role->addPermissionToSendEmails();
+        $role->addPermissionToCreatePosts();
         $this->assertTrue($role->hasPermissionToSendEmails());
         $this->assertTrue($user->hasPermissionToSendEmails());
         $this->assertTrue($role->hasPermissionToCreatePosts());
         $this->assertTrue($user->hasPermissionToCreatePosts());
+
+        // delete the permissions
+        $role->delPermissionToSendEmails();
+        $role->delPermissionToCreatePosts();
+        $this->assertFalse($role->hasPermissionToSendEmails());
+        $this->assertFalse($user->hasPermissionToSendEmails());
+        $this->assertFalse($role->hasPermissionToCreatePosts());
+        $this->assertFalse($user->hasPermissionToCreatePosts());
     }
 
     /**
@@ -171,13 +177,19 @@ class HasPermissionTest extends TestCase
 
         // test the view permission
         $this->assertFalse($role->hasPermissionToView($article));
-        $article->attachViewPermission($role);
+        $role->addPermissionToView($article);
         $this->assertTrue($role->hasPermissionToView($article));
 
         // try now with update permission
         $this->assertFalse($role->hasPermissionToUpdate($article));
-        $article->attachUpdatePermission($role);
+        $role->addPermissionToUpdate($article);
         $this->assertTrue($role->hasPermissionToUpdate($article));
+
+        // delete the permissions
+        $role->delPermissionToView($article);
+        $this->assertFalse($role->hasPermissionToView($article));
+        $role->delPermissionToUpdate($article);
+        $this->assertFalse($role->hasPermissionToUpdate($article));
     }
 
     /**
