@@ -21,6 +21,7 @@ particular. This is better than adding a 'user_id' column in the articles table.
 - Per-user permission: assign permission to a user
 - Per-model permission: associate a unique model in DB with a permission
 - Automated Laravel Policies for controllers using per-model permissions
+- Clean interface with permission-name guessing
 - Arbitrary permissions
 - Arbitrary roles
 
@@ -58,6 +59,8 @@ Convention used here:
 Add Traits to the application's user class:
 
 ```php
+<?php
+
 use Uwla\Lacl\Traits\HasRole;
 use Uwla\Lacl\Traits\HasPermission;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -73,6 +76,7 @@ class User extends Authenticatable
 Add role or multiple roles to user (the roles must already exist):
 
 ```php
+<?php
 // single role
 $user->addRole(Role::first());      // using Eloquent model
 $user->addRole('administrator');    // using string name
@@ -85,6 +89,7 @@ $user->addRole(['editor', 'manager', 'senior']);    // using string names
 Role the role or multiple roles to user (revoking previous ones):
 
 ```php
+<?php
 // single role
 $user->setRole(Role::first());      // using Eloquent model
 $user->setRole('administrator');    // using string name
@@ -97,6 +102,7 @@ $user->setRole(['editor', 'manager', 'senior']);    // using string names
 Get the roles of the user (returns `Collection<Role>` or `array<string>`):
 
 ```php
+<?php
 $user->getRoles();      // get Eloquent models
 $user->getRoleNames();  // get string names
 ```
@@ -104,6 +110,7 @@ $user->getRoleNames();  // get string names
 Delete role (returns `@void`):
 
 ```php
+<?php
 // single role
 $user->delRole($role);      // using Eloquent model
 $user->delRole('editor');   // using string name
@@ -119,6 +126,7 @@ $user->delAllRoles();
 Has role (returns `@bool`):
 
 ```php
+<?php
 // check whether the user has a role
 $user->hasRole($role);      // using Eloquent model
 $user->hasRole('editor');   // using string name
@@ -135,6 +143,7 @@ $user->hasAnyRoles(['editor', 'manager']);  // using strig names
 Count how many roles the user has (returns `@int`):
 
 ```php
+<?php
 $user->countRoles();
 ```
 
@@ -147,6 +156,7 @@ Add a permission or multiple permissions to role (the permissions  must  already
 exist):
 
 ```php
+<?php
 // single role
 $role->addPermission(Permission::first());      // using Eloquent model
 $role->addPermission('manage client emails');   // using string name
@@ -159,6 +169,7 @@ $role->addPermission(['user.view', 'user.create', 'user.delete']);  // using str
 Set the permission or multiple permissions to role (revoking previous ones):
 
 ```php
+<?php
 // single permission
 $role->setPermission(Permission::first());       // using Eloquent model
 $role->setPermission('manage client emails');    // using string name
@@ -171,6 +182,7 @@ $role->setPermission(['user.view', 'user.create', 'user.delete']);  // using str
 Get the permissions of the role (returns `Collection<Permission>` or `array<string>`):
 
 ```php
+<?php
 $role->getPermissions();      // get Eloquent models
 $role->getPermissionNames();  // get string names
 ```
@@ -178,6 +190,7 @@ $role->getPermissionNames();  // get string names
 Delete permission (returns `@void`):
 
 ```php
+<?php
 // single permission
 $role->delPermission($permission);  // using Eloquent model
 $role->delPermission('view mails'); // using string name
@@ -193,6 +206,7 @@ $role->delAllPermissions();
 Has role (returns `@bool`):
 
 ```php
+<?php
 // check whether the role has a permission
 $role->hasPermission($permission);    // using Eloquent model
 $role->hasPermission('user.view');    // using string name
@@ -209,6 +223,7 @@ $role->hasAnyPermissions(['user.view', 'user.del']);  // using strig names
 Count how many permissions the role has (returns `@int`):
 
 ```php
+<?php
 $role->countPermissions();
 ```
 
@@ -217,6 +232,7 @@ $role->countPermissions();
 Create an arbitrary permission:
 
 ```php
+<?php
 $permission = Permission::create([
   'name' => $customName,
   'description' => $optionalDescription,
@@ -226,17 +242,18 @@ $permission = Permission::create([
 Create a permission for a given model:
 
 ```php
+<?php
 $article = Article::first();
 
 $permission = Permission::create([
   'name' => 'article.edit',   // can be any name, but standards help automation
   'model' => Article::class,
   'model_id' => $article->id;
-])
+]);
 
 // now you could do something like
 $user->add($permission);
-$user->hasPermission('article.edit', Article::class, $article->id); // will return true
+$user->hasPermission('article.edit', Article::class, $article->id); // true
 ```
 
 You can perform any operations on `Permission` that are  supported  by  Eloquent
@@ -309,6 +326,7 @@ user/role has access to those permissions.
 Create crud permission (or fetch them, if already exist) for the article:
 
 ```php
+<?php
 $article = Article::find(1);
 $viewPermission = $article->createViewPermission();
 $updatePermission = $article->createUpdatePermission();
@@ -321,6 +339,7 @@ $crudPermissions = $article->createCrudPermissions();
 Get the permissions, assuming they were already created before:
 
 ```php
+<?php
 $article = Article::find(1);
 $viewPermission = $article->getViewPermission();
 $updatePermission = $article->getUpdatePermission();
@@ -333,6 +352,7 @@ $crudPermissions = $article->getCrudPermissions();
 Delete the permissions (they may exist or not).
 
 ```php
+<?php
 $article = Article::find(1);
 $article->deleteViewPermission();
 $article->deleteUpdatePermission();
@@ -345,6 +365,7 @@ $article->deleteCrudPermissions();
 Attach the permissions to the user:
 
 ```php
+<?php
 // while you could fetch the permissions manually and then attach it to the user or role
 $viewPermission = $article->getViewPermission();
 $role->addPermission($viewPermission); // assign to a role
@@ -366,7 +387,8 @@ $article->attachCrudPermissions($role);
 Revoking permissions is done in the same way:
 
 ```php
-// while you could fetch the permissions manually and then revoke from the user or role
+<?php
+// you could fetch the permissions manually, then revoke from the user or role
 $viewPermission = $article->getViewPermission();
 $role->delPermission($viewPermission); // revoke from a role
 $user->delPermission($viewPermission); // revoke from a specific user
@@ -388,10 +410,12 @@ For now, to check if the user has a permission to view/update/delete the model,
 you could do the following:
 
 ```php
+<?php
+
 if ($user->hasPermission($article->getViewPermission())
 {
     // user can view the article
-    return new Response($article);
+    return new Response(['data' => $article]);
 }
 
 if ($user->hasPermission($article->getDeletePermission())
@@ -407,9 +431,66 @@ assigned specifically to him plus the permissions assigned to any role  he  has.
 Therefore, it the user does not  have  a  direct  permission  to  the  view  the
 article, but one of its role has, the user will also have that permission.
 
+### Dynamic permissions
+
+There is a shorter, cleaner way (aka, syntax sugar) to deal with permissions:
+
+```php
+<?php
+// create a permission to send emails
+Permission::create(['name' => 'sendEmails']);
+
+// you can do the following,
+// a shorter way to add, check, and del a single permission
+$user->addPermissionToSendEmails();
+$user->hasPermissionToSendEmails(); // true
+$user->delPermissionToSendEmails();
+$user->hasPermissionToSendEmails(); // false
+```
+
+Whenever you call a method that it is undefined, it will trigger PHP's  language
+construct `__calll`  method,  which  allows  us  programmers  to  define  custom
+behavior to handle undefined methods. In this case,  the  `HasPermission`  trait
+handles custom behavior in the following way:
+
+1. If the method name does not start with `hasPermissionTo`,  `addPermissionTo`,
+   or `delPermissionTo`, then it will call the `parent::__call` to handle it.
+2. The remaining of the method name  (in  this  case,  it  is  `SendEmails`)  is
+   passed to a method called `guessPermissionName`, which you are encouraged  to
+   overwrite to fit your needs.
+3. By default, `guessPermissionName` will just lower case the  first  letter  of
+   the remaining method name.
+4. It will then call one  of  the  following  `hasPermission`,  `addPermission`,
+   `delPermission`, depending on the method name.
+5. If an argument is passed, it is assumed to be a  class  that  implements  the
+   `PermissionableContract`, provided by this  package.  The  permission  to  be
+   create/checked/delete will be a model-based permission
+
+The default convention  is  that  the  permission  name  is  prefixed  with  the
+`<model>.`, where `<model>` is the lowercase name of the model's class. This  is
+the current convention, but it will be customizable in the near future.
+
+Here is an example with models:
+
+```php
+<?php
+$user->addPermissionToView($article);
+$user->hasPermissionToView($article);           // true
+$user->delPermissionToView($article);
+$user->addPermissionToDeleteForever($article);
+$user->hasPermissionToView($article);           // false, since we deleted it
+$user->hasPermissionToDeleteForever($article);  // true
+
+// of course, this works for roles too
+$role->addPermissionToUpdate($article);
+```
+
+Notice that before adding a permission, the permission should already exist.  If
+the permission does not exist, you should create it.
+
 ## Roadmap
 
 A list of intended things to do:
 
 - publish demo app
-- improve documentation
+- more tests for checking deletion of models and permissions
