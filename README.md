@@ -497,4 +497,5 @@ the permission does not exist, you should create it.
 
 A list of intended things to do:
 
+- add feature to get the models the user has permission to access
 - more tests for checking deletion of models and permissions
