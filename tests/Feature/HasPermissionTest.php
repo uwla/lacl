@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use Tests\Article;
 use Uwla\Lacl\Models\User;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\Permission;
@@ -129,6 +130,54 @@ class HasPermissionTest extends TestCase
         $role->addPermission($permission);
         $this->assertTrue($role->hasPermission($permission));
         $this->assertTrue($user->hasPermission($permission));
+    }
+
+    /**
+     * Test having the given permission dynamically,
+     *
+     * @return void
+     */
+    public function test_has_permission_dynamically()
+    {
+        $role = Role::factory()->createOne();
+        $user = User::factory()->createOne();
+        $permission1 = Permission::create(['name' => 'sendEmails']);
+        $permission2 = Permission::create(['name' => 'createPosts']);
+
+        $user->addRole($role);
+        $this->assertFalse($role->hasPermissionToSendEmails());
+        $this->assertFalse($user->hasPermissionToSendEmails());
+        $this->assertFalse($role->hasPermissionToCreatePosts());
+        $this->assertFalse($user->hasPermissionToCreatePosts());
+
+        $role->addPermissions([$permission1, $permission2]);
+        $this->assertTrue($role->hasPermissionToSendEmails());
+        $this->assertTrue($user->hasPermissionToSendEmails());
+        $this->assertTrue($role->hasPermissionToCreatePosts());
+        $this->assertTrue($user->hasPermissionToCreatePosts());
+    }
+
+    /**
+     * Test having the per-model permission dynamically,
+     *
+     * @return void
+     */
+    public function test_has_permodel_permission_dynamically()
+    {
+        // create models and permissions
+        $role    = Role::factory()->createOne();
+        $article = Article::factory()->createOne();
+        $article->createCrudPermissions();
+
+        // test the view permission
+        $this->assertFalse($role->hasPermissionToView($article));
+        $article->attachViewPermission($role);
+        $this->assertTrue($role->hasPermissionToView($article));
+
+        // try now with update permission
+        $this->assertFalse($role->hasPermissionToUpdate($article));
+        $article->attachUpdatePermission($role);
+        $this->assertTrue($role->hasPermissionToUpdate($article));
     }
 
     /**
