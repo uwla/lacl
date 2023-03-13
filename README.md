@@ -493,9 +493,46 @@ $role->addPermissionToUpdate($article);
 Notice that before adding a permission, the permission should already exist.  If
 the permission does not exist, you should create it.
 
+### Fetching models the user or role has access to
+
+Here is how to fetch the models of a specific type that the user or a role has
+access to:
+
+```php
+<?php
+// per user
+$articles = $user->getModels(Article::class);
+
+// per role
+$articles = $role->getModels(Article::class);
+```
+
+This will fetch all `Article` models such that there is a per-model permission
+associated with them and the user or role has access to at least one of such
+per-model permissions.
+
+You can specify the name of the permission too:
+
+```php
+<?php
+// get all articles this user can view on a per-article basis
+$articles = $user->getModels(Article::class, 'view');
+
+// get all articles this user can edit on a per-model basis
+$articles = $user->getModels(Article::class, 'update');
+
+// get all the users this role can delete on a per-model basis
+$users = $role->getModels(User::class, 'delete');
+
+// get all products this user is able to cancel the delivery of, on a per-model basis
+$products = $user->getModels(Product::class, 'cancelDelivery');
+```
+
+That way, you have granular control to fetch the models each user  or  role  has
+permission to access, filtering by a particular action (aka, permission name).
+
 ## Roadmap
 
 A list of intended things to do:
 
-- add feature to get the models the user has permission to access
-- more tests for checking deletion of models and permissions
+- more tests to checking deletion of models and permissions

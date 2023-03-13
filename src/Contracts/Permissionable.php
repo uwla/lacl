@@ -21,7 +21,7 @@ Interface Permissionable
      * @param string $permissionName
      * @return void
      */
-    public function getPermissionPrefix();
+    public static function getPermissionPrefix();
 
     /**
      * Create the view permission associated with this model.

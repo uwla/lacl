@@ -5,8 +5,11 @@ namespace Uwla\Lacl\Traits;
 use ArgumentCountError;
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use ReflectionClass;
 use Uwla\Lacl\Contracts\Permissionable;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
@@ -199,11 +202,11 @@ Trait HasPermission
     }
 
     /**
-     * get the permissions associated with this object
+     * get the permission ids associated with this object
      *
      * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
-      */
-    public function getPermissions()
+     */
+    private function getThisPermissionsIds()
     {
         $roleIds = $this->getRoleIds();
 
@@ -212,14 +215,63 @@ Trait HasPermission
             return [];
 
         // get the ids of the permissions associated with this object's roles
-        $ids = RolePermission::query()
+        return RolePermission::query()
             ->whereIn('role_id', $roleIds)
             ->get()
             ->pluck('permission_id')
             ->toArray();
+    }
 
-        // retrieve the permissions by id
+    /**
+     * get all permissions associated with this object
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
+      */
+    public function getPermissions()
+    {
+        $ids = $this->getThisPermissionsIds();
         return Permission::whereIn('id', $ids)->get();
+    }
+
+    /**
+     * Get the models this role or user has permission to access.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getModels($class, $permissionNames=[], $addPrefix=true)
+    {
+        // type validation for the class, using the reflection helper
+        $instance = (new ReflectionClass($class))->newInstance();
+        if (! $instance instanceof Permissionable)
+            throw new BadMethodCallException('Class should abide to Permissionable contract.');
+        if (! $instance instanceof Model)
+            throw new BadMethodCallException('Class should Eloquent model.');
+
+        if (gettype($permissionNames) == 'string')
+            $permissionNames = [$permissionNames];
+
+        $query = Permission::query()
+            ->where('model', $class)
+            ->whereNotNull('model_id')
+            ->whereIn('id', $this->getThisPermissionsIds());
+
+        if (count($permissionNames) > 0)
+        {
+            if ($addPrefix)
+            {
+                $prefix = $class::getPermissionPrefix();
+                $mapper = fn($name) => "$prefix.$name";
+                $permissionNames = Arr::map($permissionNames, $mapper);
+            }
+            $query = $query->whereIn('name', $permissionNames);
+        }
+        $permissions = $query->get();
+
+        // get the models by id
+        $ids = $permissions->pluck('model_id')->toArray();
+        $ids = array_unique($ids);
+        $models = $class::whereIn('id', $ids)->get();
+        return $models;
     }
 
     /**
@@ -315,7 +367,7 @@ Trait HasPermission
             throw new BadMethodCallException("Argument must be of type Permissionable");
 
         // now, extract the adequate values
-        $permissionPrefix = $model->getPermissionPrefix();
+        $permissionPrefix = $model::getPermissionPrefix();
         $permissionName = $permissionPrefix . '.' . $permissionName;
         $id = $model->getModelId();
         $class = $model::class;

@@ -32,10 +32,10 @@ Trait Permissionable
      * @param string $permissionName
      * @return void
      */
-    public function getPermissionPrefix()
+    public static function getPermissionPrefix()
     {
         // @see https://stackoverflow.com/questions/4636166/only-variables-should-be-passed-by-reference
-        $tmp = explode('\\', $this::class);
+        $tmp = explode('\\', self::class);
         return strtolower(end($tmp));
     }
 
@@ -50,7 +50,7 @@ Trait Permissionable
         return Permission::firstOrCreate([
             'model' => $this::class,
             'model_id' => $this->id,
-            'name' => $this->getPermissionPrefix() . '.' . $permissionName,
+            'name' => $this::getPermissionPrefix() . '.' . $permissionName,
         ]);
     }
 
@@ -65,7 +65,7 @@ Trait Permissionable
         return Permission::where([
             'model' => $this::class,
             'model_id' => $this->id,
-            'name' => $this->getPermissionPrefix() . '.' . $permissionName,
+            'name' => $this::getPermissionPrefix() . '.' . $permissionName,
         ])->first();
     }
 
@@ -80,7 +80,7 @@ Trait Permissionable
         Permission::where([
             'model' => $this::class,
             'model_id' => $this->id,
-            'name' => $this->getPermissionPrefix($permissionName) . '.' . $permissionName,
+            'name' => $this::getPermissionPrefix($permissionName) . '.' . $permissionName,
         ])->delete();
     }
 

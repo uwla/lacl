@@ -51,7 +51,7 @@ class PermissionableTest extends TestCase
             'model' => $permissionable::class,
             'model_id' => $permissionable->id,
         ];
-        $prefix = $permissionable->getPermissionPrefix();
+        $prefix = $permissionable::getPermissionPrefix();
 
         // check permission exists
         foreach (['view', 'update', 'delete'] as $action)
@@ -82,6 +82,45 @@ class PermissionableTest extends TestCase
         // delete permission
         $permission = $permissionable->createDeletePermission();
         $this->assertTrue($permission->is($permissionable->getDeletePermission()));
+    }
+
+    /**
+     * Test getting models
+     *
+     * @return void
+     */
+    public function test_getting_models()
+    {
+        $m1 = $this->newPermissionable();
+        $m2 = $this->newPermissionable();
+        $m3 = $this->newPermissionable();
+        $user = User::factory()->createOne();
+
+        $m1->createCrudPermissions();
+        $m2->createCrudPermissions();
+        $m3->createCrudPermissions();
+
+        // test it gets the models if there is only one model
+        $m1->attachUpdatePermission($user);
+        $models = $user->getModels($m1::class);
+        $this->assertCount(1, $models);
+        $this->assertTrue($m1->id == $models[0]->id);
+
+        // test it gets the models if there are many models
+        $m2->attachViewPermission($user);
+        $models = $user->getModels($m2::class);
+        $this->assertCount(2, $models);
+        $this->assertContains($m2->id, $models->pluck('id'));
+
+        // test it gets the models based on permission name
+        $models = $user->getModels($m2::class, 'view');
+        $this->assertCount(1, $models);
+        $this->assertTrue($m2->id == $models[0]->id);
+
+        $m3->attachViewPermission($user);
+        $models = $user->getModels($m3::class, 'view');
+        $this->assertCount(2, $models);
+        $this->assertContains($m3->id, $models->pluck('id'));
     }
 
     /**
