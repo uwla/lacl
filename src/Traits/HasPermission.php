@@ -276,33 +276,56 @@ Trait HasPermission
      */
     public function __call($name, $arguments)
     {
-        $prefix = 'hasPermissionTo';
+        $possiblePrefixes = ['hasPermissionTo', 'addPermissionTo', 'delPermissionTo'];
+        $matchingPrefix = '';
 
         // if the undefined method called does not start with the prefix, let
         // the parent class deal with it.
-        if (! Str::startsWith($name, $prefix))
+        foreach ($possiblePrefixes as $prefix)
+        {
+            if (Str::startsWith($name, $prefix))
+            {
+                $matchingPrefix = $prefix;
+                break;
+            }
+        }
+
+        if ($matchingPrefix == '')
             return parent::__call($name, $arguments);
 
         // get the name of the permission called after it
-        $suffix = Str::after($name, $prefix);
+        $suffix = Str::after($name, $matchingPrefix);
         $permissionName = $this->guessPermissionName($suffix);
-        if (empty($arguments))
-            return $this->hasPermission($permissionName);
 
-        $model = $arguments[0];
-        if (! $model instanceof Permissionable)
-            throw new BadMethodCallException(
-                "HasPermissionTo requires a Eloquent Model as it first argument"
-            );
+        if (empty($arguments))
+        {
+            if ($matchingPrefix == 'hasPermissionTo')
+                return $this->hasPermission($permissionName);
+            if ($matchingPrefix == 'addPermissionTo')
+                return $this->addPermission($permissionName);
+            if ($matchingPrefix == 'delPermissionTo')
+                return $this->delPermission($permissionName);
+        }
+
+        // do some argument validation
         if (count($arguments) != 1)
             throw new ArgumentCountError("Too much arguments");
+        $model = $arguments[0];
+        if (!$model instanceof Permissionable)
+            throw new BadMethodCallException("Argument must be of type Permissionable");
 
+        // now, extract the adequate values
         $permissionPrefix = $model->getPermissionPrefix();
         $permissionName = $permissionPrefix . '.' . $permissionName;
         $id = $model->getModelId();
         $class = $model::class;
 
-        return $this->hasPermission($permissionName, $class, $id);
+        if ($matchingPrefix == 'hasPermissionTo')
+            return $this->hasPermission($permissionName, $class, $id);
+        if ($matchingPrefix == 'addPermissionTo')
+            return $this->addPermission($permissionName, $class, $id);
+        if ($matchingPrefix == 'delPermissionTo')
+            return $this->delPermission($permissionName, $class, $id);
     }
 
     /**
