@@ -8,6 +8,8 @@ use Uwla\Lacl\Contracts\HasPermission;
 
 Trait Permissionable
 {
+    use Identifiable;
+
     /**
      * Register callback to delete permissions associated with this model when it gets deleted.
      *

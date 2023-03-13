@@ -2,12 +2,15 @@
 
 namespace Uwla\Lacl\Traits;
 
+use ArgumentCountError;
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Str;
+use Uwla\Lacl\Contracts\Permissionable;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
-use Illuminate\Foundation\Auth\User;
 use Uwla\Lacl\Models\UserRole;
 
 Trait HasPermission
@@ -248,6 +251,45 @@ Trait HasPermission
     public function hasPermission($permission, $resource=null, $id=null)
     {
         return $this->hasPermissions([$permission], $resource, [$id]);
+    }
+
+    /**
+     * Executed when the object is called upon an undefined method.
+     * We overwrote it to provide better interface to manage permissions.
+     *
+     * If the method called starts with 'hasPermissionTo', our custom handler
+     * will be called, otherwise we delegated it to the default handler.
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        $prefix = 'hasPermissionTo';
+
+        // if the undefined method called does not start with the prefix, let
+        // the parent class deal with it.
+        if (! Str::startsWith($name, $prefix))
+            return parent::__call($name, $arguments);
+
+        // get the name of the permission called after it
+        $permissionName = Str::lcfirst(Str::after($name, $prefix));
+        if (empty($arguments))
+            return $this->hasPermission($permissionName);
+
+        $model = $arguments[0];
+        if (! $model instanceof Permissionable)
+            throw new BadMethodCallException(
+                "HasPermissionTo requires a Eloquent Model as it first argument"
+            );
+        if (count($arguments) != 1)
+            throw new ArgumentCountError("Too much arguments");
+
+        $permissionPrefix = $model->getPermissionPrefix();
+        $permissionName = $permissionPrefix . '.' . $permissionName;
+        $id = $model->getModelId();
+        $class = $model::class;
+
+        return $this->hasPermission($permissionName, $class, $id);
     }
 
     /**

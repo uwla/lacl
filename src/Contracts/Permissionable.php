@@ -9,6 +9,13 @@ use Uwla\Lacl\Contracts\HasPermission;
 Interface Permissionable
 {
     /**
+     * Get the id of the model
+     *
+     * @return mixed
+     */
+    public function getModelId();
+
+    /**
      * Format the name of the permission associated with this model.
      *
      * @param string $permissionName
