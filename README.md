@@ -411,9 +411,5 @@ article, but one of its role has, the user will also have that permission.
 
 A list of intended things to do:
 
-- demo app
-- better interface to manage per-model permissions
-    - check user permission from the user instead of from the model
-    - get the models the user has permission to perform an action?
-- maybe blade components
-- more tests?
+- publish demo app
+- improve documentation
