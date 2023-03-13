@@ -10,12 +10,9 @@ class AclServiceProvider extends ServiceProvider
     {
         // publishes migrations
         $src = __DIR__ . '/' . '../database/migrations/create_acl_tables.php';
-        $now = date('Y_m_d_His', time());
         $dest = $this->app->databasePath(
-            'migrations/' . $now . '_create_acl_tables.php'
+            'migrations/2023_03_03_000000_create_acl_tables.php'
         );
-        $this->publishes([
-            $src => $dest
-        ], 'migrations');
+        $this->publishes([$src => $dest], 'migrations');
     }
 }
