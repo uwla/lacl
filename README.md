@@ -25,6 +25,11 @@ particular. This is better than adding a 'user_id' column in the articles table.
 - Arbitrary permissions
 - Arbitrary roles
 
+## Demo
+
+A demo app is available on github at
+[uwla/lacl-demo1](https://github.com/uwla/lacl-demo1) to illustrate usage.
+
 ## Installation
 
 Install using composer:
@@ -492,5 +497,4 @@ the permission does not exist, you should create it.
 
 A list of intended things to do:
 
-- publish demo app
 - more tests for checking deletion of models and permissions
