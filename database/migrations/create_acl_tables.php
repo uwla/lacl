@@ -69,7 +69,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('users_roles');
         Schema::dropIfExists('roles_permissions');
-		Schema::dropIfExists('roles');
+        Schema::dropIfExists('roles');
         Schema::dropIfExists('permissions');
     }
 };

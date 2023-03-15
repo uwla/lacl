@@ -15,15 +15,12 @@ Trait Permissionable
      *
      * @return void
      */
-    protected static function boot() {
-        parent::boot();
-
-        static::deleted(function($model) {
-            Permission::where([
-                'model' => $model::class,
-                'model_id' => $model->id,
-            ])->delete();
-        });
+    public function deletetThisModelPermissions()
+    {
+        Permission::where([
+            'model' => $this::class,
+            'model_id' => $this->id,
+        ])->delete();
     }
 
     /**

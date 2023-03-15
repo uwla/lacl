@@ -531,8 +531,44 @@ $products = $user->getModels(Product::class, 'cancelDelivery');
 That way, you have granular control to fetch the models each user  or  role  has
 permission to access, filtering by a particular action (aka, permission name).
 
-## Roadmap
+### PerModel Permission Deletion
 
-A list of intended things to do:
+To delete all per-model permissions associated with a model,
+you can use the `deletetThisModelPermissions` method that comes
+with the `Permissionable` trait.
 
-- more tests to checking deletion of models and permissions
+```php
+<?php
+$model->deletetThisModelPermissions();
+```
+
+If you want that behavior to be triggered automatically before deleting an Eloquent
+model, you can add that to the `boot` method of your model:
+
+```php
+<?php
+/*
+ * Register callback to delete permissions associated with this model when it gets deleted.
+ *
+ * @return void
+ */
+protected static function boot() {
+    parent::boot();
+    static::deleted(function($model) {
+        Permission::where([
+            'model' => $model::class,
+            'model_id' => $model->id,
+        ])->delete();
+    });
+}
+```
+
+Just keep in mind that  mass  deletions  do  not  trigger  the  `static:deleted`
+because when you use Eloquent Models for mass deletion it  will  not  fetch  the
+models first and later deleted them  one  by  one;  it  will,  instead,  send  a
+deletion query to the database and that is.
+
+## Contributions
+
+Contributions are welcome. Fork the repository, make your changes, then  make  a
+pull request.
