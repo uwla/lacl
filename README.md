@@ -264,7 +264,7 @@ $user->hasPermission('article.edit', Article::class, $article->id); // true
 You can perform any operations on `Permission` that are  supported  by  Eloquent
 models, such as deleting, updating, fetching, searching, etc.
 
-### Per model permissions
+### Per-model permission
 
 The Trait `Permissionable` provides an interface for managing  CRUD  permissions
 associated with a given model. In  the  following  examples,  we  will  use  the
@@ -436,7 +436,44 @@ assigned specifically to him plus the permissions assigned to any role  he  has.
 Therefore, it the user does not  have  a  direct  permission  to  the  view  the
 article, but one of its role has, the user will also have that permission.
 
-### Dynamic permissions
+### Per-model permission deletion
+
+To delete all per-model permissions associated with a model,
+you can use the `deletetThisModelPermissions` method that comes
+with the `Permissionable` trait.
+
+```php
+<?php
+$model->deletetThisModelPermissions();
+```
+
+If you want that behavior to be triggered automatically before deleting an Eloquent
+model, you can add that to the `boot` method of your model:
+
+```php
+<?php
+/*
+ * Register callback to delete permissions associated with this model when it gets deleted.
+ *
+ * @return void
+ */
+protected static function boot() {
+    parent::boot();
+    static::deleted(function($model) {
+        Permission::where([
+            'model' => $model::class,
+            'model_id' => $model->id,
+        ])->delete();
+    });
+}
+```
+
+Just keep in mind that  mass  deletions  do  not  trigger  the  `static:deleted`
+because when you use Eloquent Models for mass deletion it  will  not  fetch  the
+models first and later deleted them  one  by  one;  it  will,  instead,  send  a
+deletion query to the database and that is.
+
+### Per-model permission dynamically
 
 There is a shorter, cleaner way (aka, syntax sugar) to deal with permissions:
 
@@ -493,7 +530,7 @@ $role->addPermissionToUpdate($article);
 Notice that before adding a permission, the permission should already exist.  If
 the permission does not exist, you should create it.
 
-### Fetching models the user or role has access to
+### Per-model permission model fetching
 
 Here is how to fetch the models of a specific type that the user or a role has
 access to:
@@ -531,42 +568,107 @@ $products = $user->getModels(Product::class, 'cancelDelivery');
 That way, you have granular control to fetch the models each user  or  role  has
 permission to access, filtering by a particular action (aka, permission name).
 
-### PerModel Permission Deletion
+### Resource Policy
 
-To delete all per-model permissions associated with a model,
-you can use the `deletetThisModelPermissions` method that comes
-with the `Permissionable` trait.
+This package provides the `ResourcePolicy` trait to automate Laravel Policies using
+a standard convention for creating permissions.
+
+The convention is:
+
+- To create a model, the user must have the `{model}.create` permission.
+- To view all models, the user must have the `{model}.viewAny` permission.
+- To view a specific model, the user  must  have  either  the  `{model}.viewAny`
+permission or the `{model}.view` per-model permission for the specific model.
+- To update a specific model, the user must have either the `{model}.updateAny`
+permission or the `{model}.update` per-model permission for the specific model.
+- To delete a specific model, the user must have either the `{model}.deleteAny`
+permission or the `{model}.delete` per-model permission for the specific model.
+- To force-delete a specific model, the user must have either the `{model}.forceDeleteAny`
+permission or the `{model}.forcedelete` per-model permission for the specific model.
+- To restore a specific model, the user must have either the `{model}.restoreAny`
+permission or the `{model}.restore` per-model permission for the specific model.
+
+Where `{model}` is the lowercase name of the model's classname. For example,  if
+it is the `App\Models\User`, it would be `user`; if it is  `App\Models\Product`,
+it would be `product`.
+
+Here is how you would use it for a `ArticlePolicy`:
 
 ```php
 <?php
-$model->deletetThisModelPermissions();
-```
 
-If you want that behavior to be triggered automatically before deleting an Eloquent
-model, you can add that to the `boot` method of your model:
+namespace App\Policies;
 
-```php
-<?php
-/*
- * Register callback to delete permissions associated with this model when it gets deleted.
- *
- * @return void
- */
-protected static function boot() {
-    parent::boot();
-    static::deleted(function($model) {
-        Permission::where([
-            'model' => $model::class,
-            'model_id' => $model->id,
-        ])->delete();
-    });
+use App\Models\Article;
+use Uwla\Lacl\Traits\ResourcePolicy;
+use Uwla\Lacl\Contracts\ResourcePolicy as ResourcePolicyContract;
+
+class ArticlePolicy implements ResourcePolicyContract
+{
+    use ResourcePolicy;
+
+    public function getResourceModel()
+    {
+        return Article::class;
+    }
 }
 ```
 
-Just keep in mind that  mass  deletions  do  not  trigger  the  `static:deleted`
-because when you use Eloquent Models for mass deletion it  will  not  fetch  the
-models first and later deleted them  one  by  one;  it  will,  instead,  send  a
-deletion query to the database and that is.
+Then, in the `ArticleController`:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreArticleRequest;
+use App\Http\Requests\UpdateArticleRequest;
+use App\Models\Article;
+use Illuminate\Http\Response;
+
+class ArticleController extends Controller
+{
+    public function __construct()
+    {
+        $this->authorizeResource(Article::class, 'article');
+    }
+
+    public function index(): Response
+    {
+        return new Response(Article::all());
+    }
+
+    public function store(StoreArticleRequest $request): Response
+    {
+        $article = Article::create($request->all());
+        return new Response($article);
+    }
+
+    public function show(Article $article): Response
+    {
+        return new Response($article);
+    }
+
+    public function update(UpdateArticleRequest $request, Article $article): Response
+    {
+        $article->update($request->all());
+        return new Response($article);
+    }
+
+    public function destroy(Article $article): Response
+    {
+        return new Response($article);
+    }
+}
+```
+
+The Laravel Policies  are  triggered  before  the  request  is  handled  to  the
+controller. Since we are using the `ResourcePolicy`, before the request is  sent
+to the `ArticleController`, our application will  check  if  the  user  has  the
+permission to perform the action associated with the method. The  goal  here  is
+to have an automated process of  Access  Control,  freeing  the  developer  from
+having to manually check if the user has the permission to  perform  the  common
+CRUD operations.
 
 ## Contributions
 
