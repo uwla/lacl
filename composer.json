@@ -21,7 +21,6 @@
     },
     "require-dev": {
         "laravel/sanctum": "^3.2",
-        "laravel/ui": "^4.2",
         "orchestra/testbench": "^8.0",
         "phpunit/phpunit": "^10.0"
     },
