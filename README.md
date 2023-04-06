@@ -30,6 +30,26 @@ particular. This is better than adding a 'user_id' column in the articles table.
 A demo app is available on github at
 [uwla/lacl-demo1](https://github.com/uwla/lacl-demo1) to illustrate usage.
 
+## FAQ
+
+**Why should I use this package instead of popular ones, such as spatie
+permissions?**
+
+This   package   provides   some   functionality   that   spatie's   and   other
+permission-managament packages do not provide, such as per-model permission  and
+Resource  Policy  automation.  At  the  same  time,   their   packages   provide
+functionality that this package does not provide, such as searching  permissions
+based on wildcards or support  for  team  permissions.  Please,  read  the  full
+README to understand better what this package does and what it does not. If  you
+should use this package or not will  depend  on  the  specific  needs  for  your
+application; it is up to you as developer to figure it out.
+
+**Why this package?**
+
+I had specific needs that led me to develop this package and I was not aware  of
+another package that would fit my needs at the time I  started  developing  this
+package.
+
 ## Installation
 
 Install using composer:
@@ -674,3 +694,7 @@ CRUD operations.
 
 Contributions are welcome. Fork the repository, make your changes, then  make  a
 pull request.
+
+## HELP
+
+If you any need help, feel free to open an issue on this package's github repo.
