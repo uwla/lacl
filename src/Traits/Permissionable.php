@@ -11,7 +11,7 @@ Trait Permissionable
     use Identifiable;
 
     /**
-     * Register callback to delete permissions associated with this model when it gets deleted.
+     * Delete all permissions associated with this model.
      *
      * @return void
      */
