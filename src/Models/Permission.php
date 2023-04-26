@@ -5,6 +5,7 @@ namespace Uwla\Lacl\Models;
 use Uwla\Lacl\Traits\HasRole;
 use Uwla\Lacl\Database\Factories\PermissionFactory;
 use Uwla\Lacl\Contracts\Permission as PermissionContract;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
@@ -25,13 +26,23 @@ class Permission extends Model implements PermissionContract
         'description'
     ];
 
-    public static function getPermissionsByName($names, $modelType, $models)
+    /**
+      * Get permissions by their name
+      *
+      * @param array<string> $names     The names of the permissions
+      * @param mixed         $modelType The class name of the model (optional)
+      * @param mixed         $models    The models or their ids (optional)
+      * @return \Illuminate\Database\Eloquent\Collection
+      */
+    public static function getPermissionsByName($names, $modelType=null, $models=null)
     {
+        if (! is_array($names))
+            throw new InvalidArgumentException('First arg must be string array');
+
         $n = count($names);
         if ($n == 0)
         {
-            throw new InvalidArgumentException(
-            "No permission provided");
+            throw new InvalidArgumentException('No permission provided');
         }
 
         if ($modelType != null)
@@ -44,13 +55,20 @@ class Permission extends Model implements PermissionContract
             $query->whereIn('name', $names);
         } else {
             // we are dealing with permission for specific resources
+
+            if (! is_countable($models))
+            {
+                throw new InvalidArgumentException(
+                'Second arguments must be array or Collection.');
+            }
+
             if (count($models) != $n)
             {
                 throw new InvalidArgumentException(
-                "number of permissions and models must match");
+                'number of permissions and models must match');
             }
 
-            if ($models[0] instanceof Model)
+            if ($models instanceof Collection)
             {
                 $models = $models->pluck('id')->toArray();
             }
@@ -71,6 +89,28 @@ class Permission extends Model implements PermissionContract
         return $query->get();
     }
 
+    /**
+      * Create permissions with the provided names
+      *
+      * @param array<string> $names
+      * @return \Illuminate\Database\Eloquent\Collection
+      */
+    public static function createPermissionsByName($names)
+    {
+        if (! is_array($names))
+            throw new InvalidArgumentException('Expected string array');
+        if (count($names) == 0)
+            return new Collection();
+
+        // create permissions
+        $permissionsToCreate = [];
+        foreach ($names as $name);
+            $permissionsToCreate[] = ['name' => $name];
+        self::insert($permissionsToCreate); // bulk insertion
+
+        // return them
+        return self::whereIn('names', $names)->get();
+    }
 
     /**
      * Create a new factory instance for the model.
