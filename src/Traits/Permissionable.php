@@ -3,6 +3,7 @@
 namespace Uwla\Lacl\Traits;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Contracts\HasPermission;
 
@@ -37,17 +38,32 @@ Trait Permissionable
     }
 
     /**
+     * Prefix the given strings with this model permission prefix
+     *
+     * @param  array<string> $permissionName
+     * @return array<string>
+     */
+    protected static function getPrefixed($strings)
+    {
+        $prefix = self::getPermissionPrefix();
+        $result = [];
+        foreach ($strings as $string)
+            $result[] = $prefix . '.' . $string;
+        return $result;
+    }
+
+    /**
      * Create a permission associated with this model given the permission name.
      *
      * @param string $permissionName
      * @return Permission
      */
-    protected function createPermission($permissionName): Permission
+    protected static function createPermission($permissionName, $modelId=null): Permission
     {
         return Permission::firstOrCreate([
-            'model' => $this::class,
-            'model_id' => $this->getModelId(),
-            'name' => $this::getPermissionPrefix() . '.' . $permissionName,
+            'model' => self::class,
+            'model_id' => $modelId,
+            'name' => self::getPermissionPrefix() . '.' . $permissionName,
         ]);
     }
 
@@ -57,12 +73,12 @@ Trait Permissionable
      * @param string $permissionName
      * @return Permission
      */
-    protected function getPermission($permissionName): Permission
+    protected static function getPermission($permissionName, $modelId=null): Permission
     {
         return Permission::where([
-            'model' => $this::class,
-            'model_id' => $this->id,
-            'name' => $this::getPermissionPrefix() . '.' . $permissionName,
+            'model' => self::class,
+            'model_id' => $modelId,
+            'name' => self::getPermissionPrefix() . '.' . $permissionName,
         ])->first();
     }
 
@@ -72,9 +88,9 @@ Trait Permissionable
      * @param string $permissionName
      * @return void
      */
-    protected function deletePermission($permissionName)
+    protected static function deletePermission($permissionName, $modelId=null)
     {
-        $this->getPermission($permissionName)->delete();
+        self::getPermission($permissionName, $modelId)->delete();
     }
 
     /**
@@ -84,9 +100,9 @@ Trait Permissionable
      * @param string $permissionName
      * @return void
      */
-    protected function attachPermission(HasPermission $model, $permissionName)
+    protected static function attachPermission(HasPermission $model, $permissionName, $modelId=null)
     {
-        $permission = $this->getPermission($permissionName);
+        $permission = self::getPermission($permissionName, $modelId);
         $model->addPermission($permission);
     }
 
@@ -97,97 +113,35 @@ Trait Permissionable
      * @param string $permissionName
      * @return void
      */
-    protected function revokePermission(HasPermission $model, $permissionName)
+    protected static function revokePermission(HasPermission $model, $permissionName, $modelId=null)
     {
-        $permission = $this->getPermission($permissionName);
+        $permission = self::getPermission($permissionName, $modelId);
         $model->delPermission($permission);
     }
 
-    /**
-     * Create the view permission associated with this model.
-     *
-     * @return Permission
-     */
-    public function createViewPermission(): Permission
-    {
-        return $this->createPermission('view');
-    }
-
-    /**
-     * Create the update permission associated with this model.
-     *
-     * @return Permission
-     */
-    public function createUpdatePermission(): Permission
-    {
-        return $this->createPermission('update');
-    }
-
-    /**
-     * Create the delete permission associated with this model.
-     *
-     * @return Permission
-     */
-    public function createDeletePermission(): Permission
-    {
-        return $this->createPermission('delete');
-    }
+    // BULK OPERATIONS
 
     /**
      * Create the permission associated with this model.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function createCrudPermissions(): Collection
+    protected static function createManyPermissions($names, $modelId=null): Collection
     {
-        // the name of the permissions
-        $prefix = $this::getPermissionPrefix();
-        $actions = ["$prefix.view", "$prefix.update", "$prefix.delete"];
+        $permission_names = self::getPrefixed($names);
 
-        // the attributes of the permissions
         $toCreate = [];
-        foreach ($actions as $action)
+        foreach ($permission_names as $name)
         {
             $toCreate[] = [
-                'name' => $action,
-                'model' => $this::class,
-                'model_id' => $this->id,
+                'name' => $name,
+                'model' => self::class,
+                'model_id' => $modelId,
             ];
         }
 
-        // insert
         Permission::insert($toCreate);
-        return $this->getCrudPermissions();
-    }
-
-    /**
-     * Get the view permission associated with this model.
-     *
-     * @return Permission
-     */
-    public function getViewPermission(): Permission
-    {
-        return $this->getPermission('view');
-    }
-
-    /**
-     * Get the update permission associated with this model.
-     *
-     * @return Permission
-     */
-    public function getUpdatePermission(): Permission
-    {
-        return $this->getPermission('update');
-    }
-
-    /**
-     * Get the delete permission associated with this model.
-     *
-     * @return Permission
-     */
-    public function getDeletePermission(): Permission
-    {
-        return $this->getPermission('delete');
+        return self::getManyPermissions($names, $modelId);
     }
 
     /**
@@ -195,45 +149,14 @@ Trait Permissionable
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getCrudPermissions(): Collection
+    protected static function getManyPermissions($names, $modelId=null): Collection
     {
-        $prefix = $this::getPermissionPrefix();
-        $names = ["$prefix.view", "$prefix.update", "$prefix.delete"];
+        $names = self::getPrefixed($names);
         return Permission::query()
             ->whereIn('name', $names)
-            ->where('model', $this::class)
-            ->where('model_id', $this->getModelId())
+            ->where('model', self::class)
+            ->where('model_id', $modelId)
             ->get();
-    }
-
-    /**
-     * Delete the view permission associated with this model.
-     *
-     * @return void
-     */
-    public function deleteViewPermission()
-    {
-        return $this->deletePermission('view');
-    }
-
-    /**
-     * Delete the update permission associated with this model.
-     *
-     * @return void
-     */
-    public function deleteUpdatePermission()
-    {
-        return $this->deletePermission('update');
-    }
-
-    /**
-     * delete the delete permission associated with this model.
-     *
-     * @return void
-     */
-    public function deleteDeletePermission()
-    {
-        return $this->deletePermission('delete');
     }
 
     /**
@@ -241,45 +164,14 @@ Trait Permissionable
      *
      * @return void
      */
-    public function deleteCrudPermissions()
+    protected static function deleteManyPermissions($names, $modelId=null)
     {
-        $prefix = $this::getPermissionPrefix();
-        $names = ["$prefix.view", "$prefix.update", "$prefix.delete"];
+        $names = self::getPrefixed($names);
         Permission::query()
             ->whereIn('name', $names)
-            ->where('model', $this::class)
-            ->where('model_id', $this->getModelId())
+            ->where('model', self::class)
+            ->where('model_id', $modelId)
             ->delete();
-    }
-
-    /**
-     * attach the view permission associated with this model to the given model.
-     *
-     * @return void
-     */
-    public function attachViewPermission(HasPermission $model)
-    {
-        return $this->attachPermission($model, 'view');
-    }
-
-    /**
-     * attach the update permission associated with this model to the given model.
-     *
-     * @return void
-     */
-    public function attachUpdatePermission(HasPermission $model)
-    {
-        return $this->attachPermission($model, 'update');
-    }
-
-    /**
-     * attach the delete permission associated with this model to the given model.
-     *
-     * @return void
-     */
-    public function attachDeletePermission(HasPermission $model)
-    {
-        return $this->attachPermission($model, 'delete');
     }
 
     /**
@@ -287,40 +179,10 @@ Trait Permissionable
      *
      * @return void
      */
-    public function attachCrudPermissions(HasPermission $model)
+    protected static function attachManyPermissions(HasPermission $model, $names, $modelId=null)
     {
-        $permissions = $this->getCrudPermissions();
+        $permissions = self::getManyPermissions($names, $modelId);
         $model->addPermissions($permissions);
-    }
-
-    /**
-     * revoke the view permission associated with this model to the given model.
-     *
-     * @return void
-     */
-    public function revokeViewPermission(HasPermission $model)
-    {
-        return $this->revokePermission($model, 'view');
-    }
-
-    /**
-     * revoke the update permission associated with this model to the given model.
-     *
-     * @return void
-     */
-    public function revokeUpdatePermission(HasPermission $model)
-    {
-        return $this->revokePermission($model, 'update');
-    }
-
-    /**
-     * revoke the delete permission associated with this model to the given model.
-     *
-     * @return void
-     */
-    public function revokeDeletePermission(HasPermission $model)
-    {
-        return $this->revokePermission($model, 'delete');
     }
 
     /**
@@ -328,9 +190,69 @@ Trait Permissionable
      *
      * @return void
      */
-    public function revokeCrudPermissions(HasPermission $model)
+    protected static function revokeManyPermissions(HasPermission $model, $names, $modelId=null)
     {
-        $permissions = $this->getCrudPermissions();
+        $permissions = self::getManyPermissions($names, $modelId);
         $model->delPermissions($permissions);
     }
+
+    /**
+     * Gets triggered when an unkown method is called upon the this object.
+     * We use it to provide syntax sugar for calling some methods.
+     *
+     * @return mixed
+     */
+    public function __call($name, $arguments)
+    {
+        $pattern = '/^(get|create|delete|attach|revoke)([A-Z][a-z]+)Permissions?$/';
+        $matches = [];
+        if (preg_match($pattern, $name, $matches))
+        {
+            $operation = $matches[1];                     // get, create, delete, attach, revoke
+            $method = $operation . 'Permission';          // getPermission, ..., revokePermission
+            $permission_name = Str::lcfirst($matches[2]); // view, update, delete, ..., etc
+
+            if ($permission_name == 'crud')
+            {
+                $permission_name = ['view', 'update', 'delete'];
+                $method = $operation . 'ManyPermissions';
+            }
+
+            $arguments[] = $permission_name;    // append to the arg array
+            $arguments[] = $this->getModelId(); // append to the arg array
+            return call_user_func_array(array(self::class, $method), $arguments);
+        }
+
+        return parent::__call($name, $arguments);
+    }
+
+     /**
+     * Gets triggered when an unkown method is called upon the this object.
+     * We use it to provide syntax sugar for calling some methods.
+     *
+     * @return mixed
+     */
+    public static function __callStatic($name, $arguments)
+    {
+        $pattern = '/^(get|create|delete|attach|revoke)([A-Z][a-z]+)Permissions?$/';
+        $matches = [];
+        if (preg_match($pattern, $name, $matches))
+        {
+            $operation = $matches[1];                     // get, create, delete, attach, revoke
+            $method = $operation . 'Permission';          // getPermission, ..., revokePermission
+            $permission_name = Str::lcfirst($matches[2]); // view, update, delete, ..., etc
+
+            if ($permission_name == 'crud')
+            {
+                $permission_name = ['create', 'viewAny', 'updateAny', 'deleteAny'];
+                $method = $operation . 'ManyPermissions';
+            }
+
+            $arguments[] = $permission_name;    // append to the arg array
+            return call_user_func_array(array(self::class, $method), $arguments);
+        }
+
+        return parent::__callStatic($name, $arguments);
+    }
+
 }
