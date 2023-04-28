@@ -204,7 +204,7 @@ Trait Permissionable
      */
     public function __call($name, $arguments)
     {
-        $pattern = '/^(get|create|delete|attach|revoke)([A-Z][a-z]+)Permissions?$/';
+        $pattern = '/^(get|create|delete|attach|revoke)([A-Za-z]+)Permissions?$/';
         $matches = [];
         if (preg_match($pattern, $name, $matches))
         {
@@ -234,7 +234,7 @@ Trait Permissionable
      */
     public static function __callStatic($name, $arguments)
     {
-        $pattern = '/^(get|create|delete|attach|revoke)([A-Z][a-z]+)Permissions?$/';
+        $pattern = '/^(get|create|delete|attach|revoke)([a-zA-Z]+)Permissions?$/';
         $matches = [];
         if (preg_match($pattern, $name, $matches))
         {

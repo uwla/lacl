@@ -10,7 +10,6 @@ use Uwla\Lacl\Models\User;
 
 class PermissionableTest extends TestCase
 {
-
     protected function newPermissionable()
     {
         return Article::factory()->createOne();
@@ -60,6 +59,19 @@ class PermissionableTest extends TestCase
             $attr['name'] = $permissionName;
             $this->assertTrue(Permission::where($attr)->exists());
         }
+
+        // now, test the same thing but with generic permissions,
+        // that is, we are not testing per-model permissions.
+        $permissionable::createCrudPermissions();
+        $attr = [
+            'model' => $permissionable::class,
+        ];
+        foreach (['create', 'viewAny', 'updateAny', 'deleteAny'] as $action)
+        {
+            $permissionName = $prefix . '.' . $action;
+            $attr['name'] = $permissionName;
+            $this->assertTrue(Permission::where($attr)->exists());
+        }
     }
 
     /**
@@ -71,17 +83,23 @@ class PermissionableTest extends TestCase
     {
         $permissionable = $this->newPermissionable();
 
-        // view permission
+        // per model permissions
         $permission = $permissionable->createViewPermission();
         $this->assertTrue($permission->is($permissionable->getViewPermission()));
-
-        // update permission
         $permission = $permissionable->createUpdatePermission();
         $this->assertTrue($permission->is($permissionable->getUpdatePermission()));
-
-        // delete permission
         $permission = $permissionable->createDeletePermission();
         $this->assertTrue($permission->is($permissionable->getDeletePermission()));
+
+        // now, do the same but with the static permissions
+        $permission = $permissionable::createCreatePermission();
+        $this->assertTrue($permission->is($permissionable::getCreatePermission()));
+        $permission = $permissionable::createViewAnyPermission();
+        $this->assertTrue($permission->is($permissionable::getViewAnyPermission()));
+        $permission = $permissionable::createUpdateAnyPermission();
+        $this->assertTrue($permission->is($permissionable::getUpdateAnyPermission()));
+        $permission = $permissionable::createDeleteAnyPermission();
+        $this->assertTrue($permission->is($permissionable::getDeleteAnyPermission()));
     }
 
     /**
@@ -131,20 +149,30 @@ class PermissionableTest extends TestCase
     public function test_deleting_permissions()
     {
         $permissionable = $this->newPermissionable();
+
+        // test per model permissions
         $attr = [
             'model' => $permissionable::class,
             'model_id' => $permissionable->id,
         ];
 
-        $permissionable->createCrudPermissions();
+        $permissionable->createCrudPermissions(); // view, update, delete
         $this->assertTrue(Permission::where($attr)->count() == 3);
-
         $permissionable->deleteCrudPermissions();
         $this->assertTrue(Permission::where($attr)->count() == 0);
-    }
+
+        // now, with static permissions
+        $attr = [
+            'model' => $permissionable::class,
+        ];
+
+        $permissionable::createCrudPermissions(); // create, viewAny, updateAny, deleteAny
+        $this->assertTrue(Permission::where($attr)->count() == 4);
+        $permissionable::deleteCrudPermissions();
+        $this->assertTrue(Permission::where($attr)->count() == 0);}
 
     /**
-     * Test attaching permissions
+     * Test attaching and revoking permissions
      *
      * @return void
      */
@@ -167,6 +195,26 @@ class PermissionableTest extends TestCase
 
         // revoke
         $permissionable->revokeCrudPermissions($user);
+
+        // validate
+        $this->assertFalse($user->hasAnyPermission($permissions));
+        $this->assertTrue($role->hasPermissions($permissions));
+
+        // DO THE EXACT SAME THING, BUT WITH STATIC PERMISSIONS..
+
+        // create permissions
+        $permissions = $permissionable::createCrudPermissions();
+
+        // attach permissions to the user
+        $permissionable::attachCrudPermissions($user);
+        $permissionable::attachCrudPermissions($role);
+
+        // validate
+        $this->assertTrue($user->hasPermissions($permissions));
+        $this->assertTrue($role->hasPermissions($permissions));
+
+        // revoke
+        $permissionable::revokeCrudPermissions($user);
 
         // validate
         $this->assertFalse($user->hasAnyPermission($permissions));
