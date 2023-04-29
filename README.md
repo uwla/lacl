@@ -628,6 +628,22 @@ dynamic names, etc. There are only three differences:
 3. The permission names end with the `Any`, such as `updateAny`, except for the
    `create` permission.
 
+Actually, there is also more two exceptions. First, to delete all generic model
+permissions:
+
+```php
+<?php
+Article::deletetGenericModelPermissions();
+```
+
+To delete all model permissions, both generic model  permissions  and  per-model
+permissions (be careful with this one, since it will delete all of them):
+
+```php
+<?php
+Article::deletetAllModelPermissions();
+```
+
 ### Resource Policy
 
 This package provides the `ResourcePolicy` trait to  automate  Laravel  Policies

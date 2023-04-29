@@ -12,7 +12,7 @@ Trait Permissionable
     use Identifiable;
 
     /**
-     * Delete all permissions associated with this model.
+     * Delete all permissions associated with this model instance.
      *
      * @return void
      */
@@ -21,6 +21,29 @@ Trait Permissionable
         Permission::where([
             'model' => $this::class,
             'model_id' => $this->getModelId(),
+        ])->delete();
+    }
+
+    /**
+     * Delete all permissions associated with this model class.
+     *
+     * @return void
+     */
+    public static function deletetAllModelPermissions()
+    {
+        Permission::where('model', self::class)->delete();
+    }
+
+    /**
+     * Delete all permissions associated with this model class.
+     *
+     * @return void
+     */
+    public static function deletetGenericModelPermissions()
+    {
+        Permission::where([
+            'model' => self::class,
+            'model_id' => null
         ])->delete();
     }
 
