@@ -312,23 +312,23 @@ Here is a summary of the auxilary methods provided by `Permissionable`:
 | Name                       | Description                                                                        |
 | :------------------------- | :----------------------------------------------------------------------------      |
 | `createViewPermission`     | Create permission for viewing the model.                                           |
-| `createUpdatingPermission` | Create permission for updating the model.                                          |
+| `createUpdatePermission`   | Create permission for updating the model.                                          |
 | `createDeletePermission`   | Create permission for deleting the model.                                          |
 | `createCrudPermissions`    | Create permissions to view, update, delete the model.                              |
 | `getViewPermission`        | Get the permission for viewing the model.                                          |
-| `getUpdatingPermission`    | Get the permission for updating the model.                                         |
+| `getUpdatePermission`      | Get the permission for updating the model.                                         |
 | `getDeletePermission`      | Get the permission for deleting the model.                                         |
 | `getCrudPermissions`       | Get the permissions to view, update, delete the model.                             |
 | `deleteViewPermission`     | Delete the permission for viewing the model.                                       |
-| `deleteUpdatingPermission` | Delete the permission for updating the model.                                      |
+| `deleteUpdatePermission`   | Delete the permission for updating the model.                                      |
 | `deleteDeletePermission`   | Delete the permission for deleting the model.                                      |
 | `deleteCrudPermissions`    | Delete the permissions to view, update, delete the model.                          |
 | `attachViewPermission`     | Attach the permission for viewing the model to the given user/role.                |
-| `attachUpdatingPermission` | Attach the permission for updating the model to the given user/role.               |
+| `attachUpdatePermission`   | Attach the permission for updating the model to the given user/role.               |
 | `attachDeletePermission`   | Attach the permission for deleting the model to the given user/role.               |
 | `attachCrudPermissions`    | Attach the permissions to view, update, delete the model to the given user/role.   |
 | `revokeViewPermission`     | Revoke the permission for viewing the model from the given user/role.              |
-| `revokeUpdatingPermission` | Revoke the permission for updating the model from the given user/role.             |
+| `revokeUpdatePermission`   | Revoke the permission for updating the model from the given user/role.             |
 | `revokeDeletePermission`   | Revoke the permission for deleting the model from the given user/role.             |
 | `revokeCrudPermissions`    | Revoke the permissions to view, update, delete the model from the given user/role. |
 
@@ -572,41 +572,81 @@ You can specify the name of the permission too:
 
 ```php
 <?php
-// get all articles this user can view on a per-article basis
+// get all articles this user can view
 $articles = $user->getModels(Article::class, 'view');
 
-// get all articles this user can edit on a per-model basis
+// get all articles this user can edit
 $articles = $user->getModels(Article::class, 'update');
 
-// get all the users this role can delete on a per-model basis
+// get all the users this role can delete
 $users = $role->getModels(User::class, 'delete');
 
-// get all products this user is able to cancel the delivery of, on a per-model basis
+// get all products this user is able to cancel the delivery of
 $products = $user->getModels(Product::class, 'cancelDelivery');
 ```
 
 That way, you have granular control to fetch the models each user  or  role  has
 permission to access, filtering by a particular action (aka, permission name).
 
+### Generic model permissions
+
+Generic model permissions are permissions to access all instances  of  a  model.
+This  is  different  from  per-model  permission,  which  handles  access  to  a
+particular instance of a model.
+
+Those generic  model  permissions  are  `create`,  `viewAny`,  `updateAny`,  and
+`deleteAny`. They are designed to follow the standards of Laravel  Policies.  Of
+course, you can redfine those and use the custom names you want, but it is  more
+convenient to stick to those convetions because we can  automate  tasks  instead
+of manually defining custom names.
+
+The interface for generic model permissions are the same as  for  the  per-model
+permission, the only difference is that the methods are static.
+
+```php
+<?php
+// so, instead of
+$article->createCrudPermissions();
+$article->deleteUpdatePermission();
+$article->attachDeletePermission($user);
+
+// we basically do:
+Article::createCrudPermissions();
+Article::deleteUpdateAnyPermission();
+Article::attachDeleteAnyPermission($user);
+```
+
+In the second example above, the user would be able to delete all articles
+since he was granted permission to `deleteAny` any article model.
+
+Everything that was explained about per-model permissions applies to
+generic model permissions: creation, fetching, deletion, granting, revoking,
+dynamic names, etc. There are only three differences:
+
+1. The permissions must be created, fetched, and deleted using static methods.
+2. The permissions grant access to all models, not just one.
+3. The permission names end with the `Any`, such as `updateAny`, except for the
+   `create` permission.
+
 ### Resource Policy
 
-This package provides the `ResourcePolicy` trait to automate Laravel Policies using
-a standard convention for creating permissions.
+This package provides the `ResourcePolicy` trait to  automate  Laravel  Policies
+using a standard convention for creating permissions.
 
 The convention is:
 
 - To create a model, the user must have the `{model}.create` permission.
 - To view all models, the user must have the `{model}.viewAny` permission.
 - To view a specific model, the user  must  have  either  the  `{model}.viewAny`
-permission or the `{model}.view` per-model permission for the specific model.
+  permission or the `{model}.view` per-model permission for the specific model.
 - To update a specific model, the user must have either the `{model}.updateAny`
-permission or the `{model}.update` per-model permission for the specific model.
+  permission or the `{model}.update` per-model permission for the specific model.
 - To delete a specific model, the user must have either the `{model}.deleteAny`
-permission or the `{model}.delete` per-model permission for the specific model.
+  permission or the `{model}.delete` per-model permission for the specific model.
 - To force-delete a specific model, the user must have either the `{model}.forceDeleteAny`
-permission or the `{model}.forcedelete` per-model permission for the specific model.
+  permission or the `{model}.forceDelete` per-model permission for the specific model.
 - To restore a specific model, the user must have either the `{model}.restoreAny`
-permission or the `{model}.restore` per-model permission for the specific model.
+  permission or the `{model}.restore` per-model permission for the specific model.
 
 Where `{model}` is the lowercase name of the model's classname. For example,  if
 it is the `App\Models\User`, it would be `user`; if it is  `App\Models\Product`,
