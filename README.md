@@ -310,7 +310,7 @@ class Article extends Model implements PermissionableContract
 Here is a summary of the auxilary methods provided by `Permissionable`:
 
 | Name                       | Description                                                                        |
-| :------------------------- | :----------------------------------------------------------------------------      |
+| :------------------------- | :--------------------------------------------------------------------------------- |
 | `createViewPermission`     | Create permission for viewing the model.                                           |
 | `createUpdatePermission`   | Create permission for updating the model.                                          |
 | `createDeletePermission`   | Create permission for deleting the model.                                          |
@@ -391,7 +391,7 @@ Attach the permissions to the user:
 
 ```php
 <?php
-// while you could fetch the permissions manually and then attach it to the user or role
+// you can fetch the permissions manually and then attach it to the user or role
 $viewPermission = $article->getViewPermission();
 $role->addPermission($viewPermission); // assign to a role
 $user->addPermission($viewPermission); // assign to a specific user
@@ -400,7 +400,7 @@ $crudPermissions = $article->getCrudPermissions();
 $user->addPermissions($crudPermissions);
 $role->addPermissions($crudPermissions);
 
-// it is easier to attach them via the model
+// but it is easier to attach them via the model
 $article->attachViewPermission($role);
 $article->attachViewPermission($user);
 
@@ -467,13 +467,14 @@ with the `Permissionable` trait.
 $model->deletetThisModelPermissions();
 ```
 
-If you want that behavior to be triggered automatically before deleting an Eloquent
-model, you can add that to the `boot` method of your model:
+If you want that behavior to  be  triggered  automatically  before  deleting  an
+Eloquent model, you can add that to the `boot` method of your model:
 
 ```php
 <?php
 /*
- * Register callback to delete permissions associated with this model when it gets deleted.
+ * Register callback to delete permissions associated with this  model  when  it
+ * gets deleted.
  *
  * @return void
  */
@@ -564,8 +565,8 @@ $articles = $user->getModels(Article::class);
 $articles = $role->getModels(Article::class);
 ```
 
-This will fetch all `Article` models such that there is a per-model permission
-associated with them and the user or role has access to at least one of such
+This will fetch all `Article` models such that there is a  per-model  permission
+associated with them and the user or role has access to at  least  one  of  such
 per-model permissions.
 
 You can specify the name of the permission too:
