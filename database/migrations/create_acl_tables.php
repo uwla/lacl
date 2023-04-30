@@ -15,23 +15,24 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
-            $table->string("model")->nullable();
-            $table->string("model_id")->nullable();
-            $table->string("description")->nullable();
+            $table->string('name');
+            $table->string('model')->nullable();
+            $table->string('model_id')->nullable();
+            $table->string('description')->nullable();
+            $table->unique(['name', 'model', 'model_id']);
             $table->timestamps();
         });
 
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
-            $table->string("description")->nullable();
+            $table->string('name');
+            $table->string('description')->nullable();
             $table->timestamps();
         });
 
         Schema::create('roles_permissions', function (Blueprint $table) {
-            $table->unsignedBigInteger("role_id");
-            $table->unsignedBigInteger("permission_id");
+            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('permission_id');
             $table->timestamps();
             $table->foreign('role_id')
                   ->references('id')
