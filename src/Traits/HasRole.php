@@ -2,12 +2,14 @@
 
 namespace Uwla\Lacl\Traits;
 
+use Exception;
 use Uwla\Lacl\Exceptions\NoSuchRoleException;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
 use Uwla\Lacl\Models\UserRole;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Collection;
 
 Trait HasRole
 {
@@ -15,7 +17,7 @@ Trait HasRole
      * Get a base query to keep building on it
      *
      * @return \Illuminate\Database\Eloquent\Builder
-    */
+     */
     private function getBaseQuery()
     {
         if ($this instanceof User)
@@ -28,10 +30,10 @@ Trait HasRole
      * Get the roles associated with this model
      *
      * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Role>
-    */
+     */
     public function getRoles()
     {
-        $roleIds = $this->getBaseQuery()->get()->pluck('role_id')->toArray();
+        $roleIds = $this->getBaseQuery()->get()->pluck('role_id');
         return Role::whereIn('id', $roleIds)->get();
     }
 
@@ -39,7 +41,7 @@ Trait HasRole
      * Get the name of the roles associated with this model
      *
      * @return array<string>
-    */
+     */
     public function getRoleNames()
     {
         return $this->getRoles()->pluck('name')->toArray();
@@ -50,7 +52,7 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role|string $role
      * @return void
-    */
+     */
     public function addRole($role)
     {
         $this->addRoles([$role]);
@@ -61,16 +63,10 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role[]|string[] $roles
      * @return void
-    */
+     */
     public function addRoles($roles)
     {
-        if (gettype($roles[0]) == 'string')
-        {
-            $n = count($roles);
-            $roles = Role::whereIn('name', $roles)->get();
-            if ($roles->count() != $n)
-                throw new NoSuchRoleException();
-        }
+        $roles = self::normalizeRoles($roles);
 
         if ($this instanceof User) {
             $class = UserRole::class;
@@ -96,7 +92,7 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role|string $role
      * @return void
-    */
+     */
     public function delRole($role)
     {
         $this->delRoles([$role]);
@@ -107,14 +103,11 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role[]|string[] $roles
      * @return void
-    */
+     */
     public function delRoles($roles)
     {
-        if (count($roles) == 0)
-            return;
-        if (gettype($roles[0]) == 'string')
-            $roles = Role::whereIn('name', $roles)->get();
-        $ids = $roles->pluck('id')->toArray();
+        $roles = self::normalizeRoles($roles);
+        $ids = $roles->pluck('id');
         $this->getBaseQuery()->whereIn('role_id', $ids)->delete();
     }
 
@@ -122,7 +115,7 @@ Trait HasRole
      * delete all roles associated with this model
      *
      * @return void
-    */
+     */
     public function delAllRoles()
     {
         $this->getBaseQuery()->delete();
@@ -133,7 +126,7 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role|string $role
      * @return void
-    */
+     */
     public function setRole($role)
     {
         $this->setRoles([$role]);
@@ -144,7 +137,7 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role[]|string[] $roles
      * @return void
-    */
+     */
     public function setRoles($roles)
     {
         // delete current user roles
@@ -158,7 +151,7 @@ Trait HasRole
      * count how many roles this model has
      *
      * @return int
-    */
+     */
     public function countRoles()
     {
         return $this->getBaseQuery()->count();
@@ -169,15 +162,13 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role]|string $role
      * @return bool
-    */
+     */
     public function hasRole($role)
     {
         if (gettype($role) == 'string')
             $role = Role::where('name', $role)->first();
-
         if (! ($role instanceof Role))
-            throw new NoSuchRoleException("Role does not exist");
-
+            throw new NoSuchRoleException('Role does not exist');
         return $this->getBaseQuery()->where('role_id', $role->id)->exists();
     }
 
@@ -186,7 +177,7 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role[]|string[] $role
      * @return bool
-    */
+     */
     public function hasRoles($roles)
     {
         return $this->hasHowManyRoles($roles) == count($roles);
@@ -197,7 +188,7 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role[]|string[] $roles
      * @return bool
-    */
+     */
     public function hasAnyRoles($roles)
     {
         return $this->hasHowManyRoles($roles) > 0;
@@ -208,27 +199,39 @@ Trait HasRole
      *
      * @param Uwla\Lacl\Role[]|string[] $roles
      * @return int
-    */
+     */
     private function hasHowManyRoles($roles)
     {
-        $n = count($roles);
-
-        if ($n == 0)
-            throw new NoSuchRoleException("No role provided");
-
-        if (gettype($roles[0]) == 'string')
-            $roles = Role::whereIn('name', $roles)->get();
-
-        if ($roles->count() != $n)
-            throw new NoSuchRoleException("One of the roles did not exist");
-
-        if (! ($roles[0] instanceof Role))
-            throw new NoSuchRoleException("Roles provided are not roles");
-
-        $roleIds = $roles->pluck('id')->toArray();
-        $matchedRoles = $this->getBaseQuery()->whereIn('role_id', $roleIds)->get();
-
+        $roles = self::normalizeRoles($roles);
+        $ids = $roles->pluck('id');
+        $matchedRoles = $this->getBaseQuery()->whereIn('role_id', $ids)->get();
         return $matchedRoles->count();
+    }
+
+    /**
+     * Normalize $roles into an Eloquent Collection of Role
+     *
+     * @param mixed $roles
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    private static function normalizeRoles($roles)
+    {
+        if (is_array($roles))
+            $roles = collect($roles);
+        if (! $roles instanceof Collection)
+            throw new Exception('Roles must be collection or array');
+        $n = $roles->count();
+        if ($n == 0)
+            throw new Exception('Roles must not be empty');
+        if (is_string($roles->first()))
+        {
+            $roles = Role::whereIn('name', $roles)->get();
+            if ($roles->count() != $n)
+                throw new Exception('One or more roles do not exist.');
+        }
+        if (! $roles->first() instanceof Role)
+            throw new Exception('Roles must be valid roles');
+        return $roles;
     }
 }
 
