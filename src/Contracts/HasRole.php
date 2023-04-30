@@ -7,7 +7,7 @@ Interface HasRole
     /**
      * Get the roles associated with this model
      *
-     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Role>
+     * @return \Illuminate\Database\Eloquent\Collection
     */
     public function getRoles();
 
@@ -21,7 +21,7 @@ Interface HasRole
     /**
      * add single role
      *
-     * @param Uwla\Lacl\Role|string $role
+     * @param \Uwla\Lacl\Role|string $role
      * @return void
     */
     public function addRole($role);
@@ -29,7 +29,7 @@ Interface HasRole
     /**
      * add many roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param \Uwla\Lacl\Role[]|string[] $roles
      * @return void
     */
     public function addRoles($roles);
@@ -37,7 +37,7 @@ Interface HasRole
     /**
      * delete single role
      *
-     * @param Uwla\Lacl\Role|string $role
+     * @param \Uwla\Lacl\Role|string $role
      * @return void
     */
     public function delRole($role);
@@ -45,7 +45,7 @@ Interface HasRole
     /**
      * delete the given roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param \Uwla\Lacl\Role[]|string[] $roles
      * @return void
     */
     public function delRoles($roles);
@@ -60,7 +60,7 @@ Interface HasRole
     /**
      * set a single role associated with this model
      *
-     * @param Uwla\Lacl\Role|string $role
+     * @param \Uwla\Lacl\Role|string $role
      * @return void
     */
     public function setRole($role);
@@ -68,7 +68,7 @@ Interface HasRole
     /**
      * set the role associated with this model
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param \Uwla\Lacl\Role[]|string[] $roles
      * @return void
     */
     public function setRoles($roles);
@@ -83,7 +83,7 @@ Interface HasRole
     /**
      * check whether this model has the given role
      *
-     * @param Uwla\Lacl\Role]|string $role
+     * @param \Uwla\Lacl\Role]|string $role
      * @return bool
     */
     public function hasRole($role);
@@ -91,7 +91,7 @@ Interface HasRole
     /**
      * check whether this model has the given roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $role
+     * @param \Uwla\Lacl\Role[]|string[] $role
      * @return bool
     */
     public function hasRoles($roles);
@@ -99,10 +99,46 @@ Interface HasRole
     /**
      * check whether this model has any of the given roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param \Uwla\Lacl\Role[]|string[] $roles
      * @return bool
     */
     public function hasAnyRoles($roles);
+
+    /**
+     * add single role to many users
+     *
+     * @param \Uwla\Lacl\Role|string $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function addRoleToMany($role, $users);
+
+    /**
+     * add many roles to many users
+     *
+     * @param \Uwla\Lacl\Role[]|string[] $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function addRolesToMany($role, $users);
+
+   /**
+     * delete a single role from many users
+     *
+     * @param \Uwla\Lacl\Role|string $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function delRoleFromMany($role, $users);
+
+    /**
+     * delete many roles from many users
+     *
+     * @param \Uwla\Lacl\Role[]|string[] $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function delRolesFromMany($role, $users);
 }
 
 ?>

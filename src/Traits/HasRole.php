@@ -195,6 +195,73 @@ Trait HasRole
     }
 
     /**
+     * add single role to many users
+     *
+     * @param \Uwla\Lacl\Role|string $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function addRoleToMany($role, $users)
+    {
+        self::addRolesToMany([$role], $users);
+    }
+
+    /**
+     * add many roles to many users
+     *
+     * @param \Uwla\Lacl\Role[]|string[] $roles
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function addRolesToMany($roles, $users)
+    {
+        $roles = self::normalizeRoles($roles);
+
+        // will add each role to each user
+        $role_ids = $roles->pluck('id');
+        $user_ids = $users->pluck('id');
+        $toCreate = [];
+        foreach ($role_ids as $rid)
+        {
+            foreach($user_ids as $uid)
+            {
+                $toCreate[] = [
+                    'role_id' => $rid,
+                    'user_id' => $uid,
+                ];
+            }
+        }
+        UserRole::insert($toCreate);
+    }
+
+    /**
+     * delete a single role from many users
+     *
+     * @param \Uwla\Lacl\Role|string $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function delRoleFromMany($role, $users)
+    {
+        self::delRolesFromMany($role, $users);
+    }
+
+    /**
+     * delete many roles from many users
+     *
+     * @param \Uwla\Lacl\Role[]|string[] $role
+     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @return void
+    */
+    public static function delRolesFromMany($roles, $users)
+    {
+        $roles = self::normalizeRoles($roles);
+        $rids = $roles->pluck('id');
+        $uids = $users->pluck('id');
+        UserRole::whereIn('role_id', $rids)->whereIn('user_id', $uids)->delete();
+    }
+
+    /**
      * get how many of the given roles this model has
      *
      * @param Uwla\Lacl\Role[]|string[] $roles
