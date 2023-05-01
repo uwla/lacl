@@ -119,13 +119,13 @@ class PermissionableTest extends TestCase
         $m3->createCrudPermissions();
 
         // test it gets the models if there is only one model
-        $m1->attachUpdatePermission($user);
+        $m1->grantUpdatePermission($user);
         $models = $user->getModels($m1::class);
         $this->assertCount(1, $models);
         $this->assertTrue($m1->id == $models[0]->id);
 
         // test it gets the models if there are many models
-        $m2->attachViewPermission($user);
+        $m2->grantViewPermission($user);
         $models = $user->getModels($m2::class);
         $this->assertCount(2, $models);
         $this->assertContains($m2->id, $models->pluck('id'));
@@ -135,7 +135,7 @@ class PermissionableTest extends TestCase
         $this->assertCount(1, $models);
         $this->assertTrue($m2->id == $models[0]->id);
 
-        $m3->attachViewPermission($user);
+        $m3->grantViewPermission($user);
         $models = $user->getModels($m3::class, 'view');
         $this->assertCount(2, $models);
         $this->assertContains($m3->id, $models->pluck('id'));
@@ -172,11 +172,11 @@ class PermissionableTest extends TestCase
         $this->assertTrue(Permission::where($attr)->count() == 0);}
 
     /**
-     * Test attaching and revoking permissions
+     * Test granting and revoking permissions
      *
      * @return void
      */
-    public function test_attaching_revoking_permissions()
+    public function test_granting_revoking_permissions()
     {
         $permissionable = $this->newPermissionable();
         $user = User::factory()->createOne();
@@ -185,9 +185,9 @@ class PermissionableTest extends TestCase
         // create permissions
         $permissions = $permissionable->createCrudPermissions();
 
-        // attach permissions to the user
-        $permissionable->attachCrudPermissions($user);
-        $permissionable->attachCrudPermissions($role);
+        // grant permissions to the user
+        $permissionable->grantCrudPermissions($user);
+        $permissionable->grantCrudPermissions($role);
 
         // validate
         $this->assertTrue($user->hasPermissions($permissions));
@@ -205,9 +205,9 @@ class PermissionableTest extends TestCase
         // create permissions
         $permissions = $permissionable::createCrudPermissions();
 
-        // attach permissions to the user
-        $permissionable::attachCrudPermissions($user);
-        $permissionable::attachCrudPermissions($role);
+        // grant permissions to the user
+        $permissionable::grantCrudPermissions($user);
+        $permissionable::grantCrudPermissions($role);
 
         // validate
         $this->assertTrue($user->hasPermissions($permissions));
