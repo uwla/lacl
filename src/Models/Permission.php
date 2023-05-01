@@ -70,7 +70,7 @@ class Permission extends Model implements PermissionContract
 
             if ($models instanceof Collection)
             {
-                $models = $models->pluck('id')->toArray();
+                $models = $models->pluck('id');
             }
 
             // each resource is identified by its model_id

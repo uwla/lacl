@@ -105,40 +105,40 @@ Interface HasRole
     public function hasAnyRoles($roles);
 
     /**
-     * add single role to many users
+     * add single role to many models
      *
      * @param \Uwla\Lacl\Role|string $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function addRoleToMany($role, $users);
+    public static function addRoleToMany($role, $models);
 
     /**
-     * add many roles to many users
+     * add many roles to many models
      *
      * @param \Uwla\Lacl\Role[]|string[] $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function addRolesToMany($role, $users);
+    public static function addRolesToMany($role, $models);
 
    /**
-     * delete a single role from many users
+     * delete a single role from many models
      *
      * @param \Uwla\Lacl\Role|string $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function delRoleFromMany($role, $users);
+    public static function delRoleFromMany($role, $models);
 
     /**
-     * delete many roles from many users
+     * delete many roles from many models
      *
      * @param \Uwla\Lacl\Role[]|string[] $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function delRolesFromMany($role, $users);
+    public static function delRolesFromMany($role, $models);
 }
 
 ?>

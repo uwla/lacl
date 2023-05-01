@@ -44,7 +44,7 @@ Trait HasRole
      */
     public function getRoleNames()
     {
-        return $this->getRoles()->pluck('name')->toArray();
+        return $this->getRoles()->pluck('name');
     }
 
     /**
@@ -195,31 +195,31 @@ Trait HasRole
     }
 
     /**
-     * add single role to many users
+     * add single role to many models
      *
      * @param \Uwla\Lacl\Role|string $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function addRoleToMany($role, $users)
+    public static function addRoleToMany($role, $models)
     {
-        self::addRolesToMany([$role], $users);
+        self::addRolesToMany([$role], $models);
     }
 
     /**
-     * add many roles to many users
+     * add many roles to many models
      *
      * @param \Uwla\Lacl\Role[]|string[] $roles
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function addRolesToMany($roles, $users)
+    public static function addRolesToMany($roles, $models)
     {
         $roles = self::normalizeRoles($roles);
 
         // will add each role to each user
         $role_ids = $roles->pluck('id');
-        $user_ids = $users->pluck('id');
+        $user_ids = $models->pluck('id');
         $toCreate = [];
         foreach ($role_ids as $rid)
         {
@@ -235,29 +235,29 @@ Trait HasRole
     }
 
     /**
-     * delete a single role from many users
+     * delete a single role from many models
      *
      * @param \Uwla\Lacl\Role|string $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function delRoleFromMany($role, $users)
+    public static function delRoleFromMany($role, $models)
     {
-        self::delRolesFromMany($role, $users);
+        self::delRolesFromMany($role, $models);
     }
 
     /**
-     * delete many roles from many users
+     * delete many roles from many models
      *
      * @param \Uwla\Lacl\Role[]|string[] $role
-     * @param \Illuminate\Database\Eloquent\Collection $users
+     * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
-    public static function delRolesFromMany($roles, $users)
+    public static function delRolesFromMany($roles, $models)
     {
         $roles = self::normalizeRoles($roles);
         $rids = $roles->pluck('id');
-        $uids = $users->pluck('id');
+        $uids = $models->pluck('id');
         UserRole::whereIn('role_id', $rids)->whereIn('user_id', $uids)->delete();
     }
 

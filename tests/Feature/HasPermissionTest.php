@@ -71,7 +71,7 @@ class HasPermissionTest extends TestCase
         $n = $this->n;
         $role = Role::factory()->createOne();
         $permissions = Permission::factory($n)->create();
-        $ids = $permissions->pluck('id')->toArray();
+        $ids = $permissions->pluck('id');
 
         // assert it does not have the permissions
         $m =RolePermission::query()

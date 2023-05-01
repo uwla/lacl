@@ -2,10 +2,6 @@
 
 namespace Uwla\Lacl\Contracts;
 
-use Illuminate\Database\Eloquent\Collection;
-use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Contracts\HasPermission;
-
 Interface Permissionable
 {
     /**
@@ -14,4 +10,12 @@ Interface Permissionable
      * @return mixed
      */
     public function getModelId();
+
+    /**
+     * Format the name of the permission associated with this model.
+     *
+     * @param string $permissionName
+     * @return void
+     */
+    public static function getPermissionPrefix();
 }

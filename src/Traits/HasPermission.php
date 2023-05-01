@@ -48,7 +48,7 @@ Trait HasPermission
         }
 
         throw new BadMethodCallException(
-            "HasPermission shall be used only with Role or User class"
+            'HasPermission shall be used only with Role or User class'
         );
     }
 
@@ -59,17 +59,16 @@ Trait HasPermission
      * @param mixed  $permissions   The permissions to be normalized
      * @param string $resource      The class name of the resource model
      * @param mixed  $ids           The ids of the resources
-     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Permission>
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     private function normalizePermissions($permissions, $resource=null, $ids=null)
     {
-        if (gettype($permissions[0]) == 'string')
-        {
-            $permissions = Permission::getPermissionsByName($permissions, $resource, $ids);
-        } else if (gettype($permissions) == 'array') {
-            $permissions = new Collection($permissions);
-        }
-        return $permissions;
+        $normalized = $permissions;
+        if (is_array($permissions))
+            $normalized = collect($permissions);
+        if (is_string($normalized->first()))
+            $normalized = Permission::getPermissionsByName($permissions, $resource, $ids);
+        return $normalized;
     }
 
     /**
@@ -84,8 +83,7 @@ Trait HasPermission
     {
         return $this
             ->normalizePermissions($permissions, $resource, $ids)
-            ->pluck('id')
-            ->toArray();
+            ->pluck('id');
     }
 
     /**
@@ -99,8 +97,7 @@ Trait HasPermission
             return UserRole::query()
                 ->where('user_id', $this->id)
                 ->get()
-                ->pluck('role_id')
-                ->toArray();
+                ->pluck('role_id');
         } else if ($this instanceof Role)
             return [$this->id];
     }
@@ -218,8 +215,7 @@ Trait HasPermission
         return RolePermission::query()
             ->whereIn('role_id', $roleIds)
             ->get()
-            ->pluck('permission_id')
-            ->toArray();
+            ->pluck('permission_id');
     }
 
     /**
@@ -268,8 +264,7 @@ Trait HasPermission
         $permissions = $query->get();
 
         // get the models by id
-        $ids = $permissions->pluck('model_id')->toArray();
-        $ids = array_unique($ids);
+        $ids = $permissions->pluck('model_id');
         $models = $class::whereIn('id', $ids)->get();
         return $models;
     }
@@ -287,8 +282,7 @@ Trait HasPermission
         $ids = RolePermission::query()
             ->whereIn('role_id', $this->getSelfRoleId())
             ->get()
-            ->pluck('permission_id')
-            ->toArray();
+            ->pluck('permission_id');
 
         // retrieve the permissions by id
         return Permission::whereIn('id', $ids)->get();
@@ -301,7 +295,7 @@ Trait HasPermission
      */
     public function getPermissionNames()
     {
-        return $this->getPermissions()->pluck('name')->toArray();
+        return $this->getPermissions()->pluck('name');
     }
 
     /**

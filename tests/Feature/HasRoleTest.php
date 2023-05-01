@@ -49,7 +49,7 @@ class HasRoleTest extends TestCase
         $user->addRoles($roles);
         $ids = UserRole::query()
             ->where('user_id', $user->id)
-            ->get()->pluck('role_id')->toArray();
+            ->get()->pluck('role_id');
         $user_roles = Role::whereIn('id', $ids)->get();
         $this->assertTrue($roles->diff($user_roles)->isEmpty());
     }

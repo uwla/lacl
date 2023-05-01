@@ -76,7 +76,7 @@ class HasPermissionPerUserTest extends TestCase
         $n = $this->n;
         $user = User::factory()->createOne();
         $permissions = Permission::factory($n)->create();
-        $ids = $permissions->pluck('id')->toArray();
+        $ids = $permissions->pluck('id');
 
         // assert the unique user role does not exist
         // which implies the user has no permission
