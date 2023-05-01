@@ -217,7 +217,7 @@ Trait HasRole
     {
         $roles = self::normalizeRoles($roles);
 
-        // will add each role to each user
+        // will add each role to each model
         $role_ids = $roles->pluck('id');
         $user_ids = $models->pluck('id');
         $toCreate = [];

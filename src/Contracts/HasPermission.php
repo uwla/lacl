@@ -109,4 +109,40 @@ Interface HasPermission
      * @return int
      */
     public function countPermissions();
+
+    /**
+     * add single permission to many models
+     *
+     * @param \Uwla\Lacl\Permission|string $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function addPermissionToMany($permission, $models);
+
+    /**
+     * add many permissions to many models
+     *
+     * @param \Uwla\Lacl\Permission[]|string[] $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function addPermissionsToMany($permissions, $models);
+
+   /**
+     * delete a single permission from many models
+     *
+     * @param \Uwla\Lacl\Permission|string $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function delPermissionFromMany($permission, $models);
+
+    /**
+     * delete many permissions from many models
+     *
+     * @param \Uwla\Lacl\Permission[]|string[] $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function delPermissionsFromMany($permissions, $models);
 }

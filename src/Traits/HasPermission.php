@@ -4,10 +4,11 @@ namespace Uwla\Lacl\Traits;
 
 use ArgumentCountError;
 use BadMethodCallException;
-use Illuminate\Database\Eloquent\Collection;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use Uwla\Lacl\Contracts\Permissionable;
@@ -18,6 +19,8 @@ use Uwla\Lacl\Models\UserRole;
 
 Trait HasPermission
 {
+    use Identifiable;
+
     /**
      * Ensure this object is instance of a Role.
      * Some methods should only be called from a Role.
@@ -61,14 +64,33 @@ Trait HasPermission
      * @param mixed  $ids           The ids of the resources
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    private function normalizePermissions($permissions, $resource=null, $ids=null)
+    private static function normalizePermissions($permissions, $resource=null, $ids=null)
     {
         $normalized = $permissions;
         if (is_array($permissions))
             $normalized = collect($permissions);
+        if (! $normalized instanceof Collection)
+            throw new Exception('Permissions must be array or Eloquent Collection');
         if (is_string($normalized->first()))
             $normalized = Permission::getPermissionsByName($permissions, $resource, $ids);
         return $normalized;
+    }
+
+    /**
+     * Get an eloquent collection of the given models.
+     *
+     * @param mixed $models
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    private static function normalizeModels($models)
+    {
+        if (is_array($models))
+            $models = collect($models);
+        if (! $models instanceof Collection)
+            throw new Exception('Models must be array or Eloquent Collection');
+        if (is_scalar($models->first()))
+            $models = self::find($models); // find by id
+        return $models;
     }
 
     /**
@@ -81,9 +103,7 @@ Trait HasPermission
      */
     private function getPermissionIds($permissions, $resource=null, $ids=null)
     {
-        return $this
-            ->normalizePermissions($permissions, $resource, $ids)
-            ->pluck('id');
+        return $this::normalizePermissions($permissions, $resource, $ids)->pluck('id');
     }
 
     /**
@@ -93,13 +113,11 @@ Trait HasPermission
      */
     private function getRoleIds()
     {
-        if ($this instanceof User) {
-            return UserRole::query()
-                ->where('user_id', $this->id)
-                ->get()
-                ->pluck('role_id');
-        } else if ($this instanceof Role)
-            return [$this->id];
+        $id = $this->id;
+        if ($this instanceof User)
+            return UserRole::where('user_id', $id)->get()->pluck('role_id');
+        else if ($this instanceof Role)
+            return [$id];
     }
 
     /**
@@ -133,7 +151,7 @@ Trait HasPermission
      */
     public function addPermissions($permissions)
     {
-        $permissions = $this->normalizePermissions($permissions);
+        $permissions = self::normalizePermissions($permissions);
         $toAdd = [];
         foreach ($permissions as $permission)
         {
@@ -434,6 +452,83 @@ Trait HasPermission
         $roleIds = $this->getRoleIds();
         if (count($roleIds) == 0) return 0;
         return RolePermission::whereIn('role_id', $roleIds)->count();
+    }
+
+    /**
+     * add single permission to many models
+     *
+     * @param \Uwla\Lacl\Permission|string $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function addPermissionToMany($permission, $models)
+    {
+        self::addPermissionsToMany([$permission], $models);
+    }
+
+    /**
+     * add many permissions to many models
+     *
+     * @param \Uwla\Lacl\Permission[]|string[] $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function addPermissionsToMany($permissions, $models)
+    {
+        $permissions = self::normalizePermissions($permissions);
+        $models = self::normalizeModels($models);
+        $toCreate = [];
+        foreach ($permissions as $permission)
+        {
+            foreach ($models as $model)
+            {
+                // If the models are roles, no query is made.
+                // If the models are users, one query per user is made.
+                //
+                // Devs are discouraged  from  adding  permissions  directly  to
+                // users since it may be very costly and make little  sense.  If
+                // permissions shall be granted to many  users,  then  the  best
+                // thing to do would be to create a role, grant the  permissions
+                // to that role, then assign that role to the users. This  shall
+                // be explained in the documentation.
+                $toCreate[] = [
+                    'permission_id' => $permission->id,
+                    'model_id' => $model->getSelfRoleId(),
+                ];
+            }
+        }
+        RolePermission::insert($toCreate);
+    }
+
+   /**
+     * delete a single permission from many models
+     *
+     * @param \Uwla\Lacl\Permission|string $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function delPermissionFromMany($permission, $models)
+    {
+        self::delPermissionsFromMany([$permission], $models);
+    }
+
+    /**
+     * delete many permissions from many models
+     *
+     * @param \Uwla\Lacl\Permission[]|string[] $permission
+     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @return void
+    */
+    public static function delPermissionsFromMany($permissions, $models)
+    {
+        $permissions = self::normalizePermissions($permissions);
+        $models = self::normalizeModels($models);
+        $pids = $permissions->pluck('ids');
+        $rids = $models->map(fn($m) => $m->getSelfRoleId());
+        RolePermission::query()
+            ->whereIn('permission_id', $pids)
+            ->whereIn('role_id', $rids)
+            ->delete();
     }
 }
 
