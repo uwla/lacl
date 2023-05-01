@@ -79,6 +79,7 @@ Trait Permissionable
      * Create a permission associated with this model given the permission name.
      *
      * @param string $permissionName
+     * @param mixed  $modelId
      * @return Permission
      */
     protected static function createPermission($permissionName, $modelId=null): Permission
@@ -94,6 +95,7 @@ Trait Permissionable
      * Get the permission associated with this model given the permission name.
      *
      * @param string $permissionName
+     * @param mixed  $modelId
      * @return Permission
      */
     protected static function getPermission($permissionName, $modelId=null): Permission
@@ -109,6 +111,7 @@ Trait Permissionable
      * Delete the permission associated with this model given the permission name.
      *
      * @param string $permissionName
+     * @param mixed  $modelId
      * @return void
      */
     protected static function deletePermission($permissionName, $modelId=null)
@@ -117,23 +120,25 @@ Trait Permissionable
     }
 
     /**
-     * Attach the permission associated with this model given the permission name and the model.
+     * Grant the permission to the user or role.
      *
      * @param HasPermission $model
-     * @param string $permissionName
+     * @param string        $permissionName
+     * @param mixed         $modelId
      * @return void
      */
-    protected static function attachPermission(HasPermission $model, $permissionName, $modelId=null)
+    protected static function grantPermission(HasPermission $model, $permissionName, $modelId=null)
     {
         $permission = self::getPermission($permissionName, $modelId);
         $model->addPermission($permission);
     }
 
     /**
-     * Revoke the permission associated with this model given the permission name and the model.
+     * Revoke the permission from the user or role.
      *
      * @param HasPermission $model
-     * @param string $permissionName
+     * @param string        $permissionName
+     * @param mixed         $modelId
      * @return void
      */
     protected static function revokePermission(HasPermission $model, $permissionName, $modelId=null)
@@ -147,6 +152,8 @@ Trait Permissionable
     /**
      * Create the permission associated with this model.
      *
+     * @param array<string> $names
+     * @param mixed         $modelId
      * @return \Illuminate\Database\Eloquent\Collection
      */
     protected static function createManyPermissions($names, $modelId=null): Collection
@@ -170,6 +177,8 @@ Trait Permissionable
     /**
      * Get the permissions associated with this model.
      *
+     * @param array<string> $names
+     * @param mixed         $modelId
      * @return \Illuminate\Database\Eloquent\Collection
      */
     protected static function getManyPermissions($names, $modelId=null): Collection
@@ -185,6 +194,8 @@ Trait Permissionable
     /**
      * Delete the permissions associated with this model.
      *
+     * @param array<string> $names
+     * @param mixed         $modelId
      * @return void
      */
     protected static function deleteManyPermissions($names, $modelId=null)
@@ -198,19 +209,25 @@ Trait Permissionable
     }
 
     /**
-     * Attach the permissions associated with this model to the given model.
+     * Grant many permissions to a user or role.
      *
+     * @param HasPermission $model
+     * @param array<string> $names
+     * @param mixed         $modelid
      * @return void
      */
-    protected static function attachManyPermissions(HasPermission $model, $names, $modelId=null)
+    protected static function grantManyPermissions(HasPermission $model, $names, $modelId=null)
     {
         $permissions = self::getManyPermissions($names, $modelId);
         $model->addPermissions($permissions);
     }
 
     /**
-     * Revoke the permissions associated with this model to the given model.
+     * Revoke the permissions from the user.
      *
+     * @param HasPermission $model
+     * @param array<string> $names
+     * @param mixed         $modelid
      * @return void
      */
     protected static function revokeManyPermissions(HasPermission $model, $names, $modelId=null)
@@ -223,17 +240,22 @@ Trait Permissionable
      * Gets triggered when an unkown method is called upon the this object.
      * We use it to provide syntax sugar for calling some methods.
      *
+     * @param string $name      The name of the method
+     * @param array  $arguments The arguments passed to the method
      * @return mixed
      */
     public function __call($name, $arguments)
     {
-        $pattern = '/^(get|create|delete|attach|revoke)([A-Za-z]+)Permissions?$/';
+        $pattern = '/^(get|create|delete|grant|attach|revoke)([A-Za-z]+)Permissions?$/';
         $matches = [];
         if (preg_match($pattern, $name, $matches))
         {
-            $operation = $matches[1];                     // get, create, delete, attach, revoke
-            $method = $operation . 'Permission';          // getPermission, ..., revokePermission
-            $permission_name = Str::lcfirst($matches[2]); // view, update, delete, ..., etc
+            // Here use Str::replace to ensure backward compability with
+            // previous interface in order to avoid introducing breakchages.
+            // The `attach` methods were replace by `grant`.
+            $operation = Str::replace('attach', 'grant', $matches[1]);
+            $method = $operation . 'Permission';
+            $permission_name = Str::lcfirst($matches[2]);
 
             if ($permission_name == 'crud')
             {
@@ -241,8 +263,8 @@ Trait Permissionable
                 $method = $operation . 'ManyPermissions';
             }
 
-            $arguments[] = $permission_name;    // append to the arg array
-            $arguments[] = $this->getModelId(); // append to the arg array
+            $arguments[] = $permission_name;
+            $arguments[] = $this->getModelId();
             return call_user_func_array(array(self::class, $method), $arguments);
         }
 
@@ -253,17 +275,22 @@ Trait Permissionable
      * Gets triggered when an unkown method is called upon the this object.
      * We use it to provide syntax sugar for calling some methods.
      *
+     * @param string $name      The name of the method
+     * @param array  $arguments The arguments passed to the method
      * @return mixed
      */
     public static function __callStatic($name, $arguments)
     {
-        $pattern = '/^(get|create|delete|attach|revoke)([a-zA-Z]+)Permissions?$/';
+        $pattern = '/^(get|create|delete|grant|attach|revoke)([a-zA-Z]+)Permissions?$/';
         $matches = [];
         if (preg_match($pattern, $name, $matches))
         {
-            $operation = $matches[1];                     // get, create, delete, attach, revoke
-            $method = $operation . 'Permission';          // getPermission, ..., revokePermission
-            $permission_name = Str::lcfirst($matches[2]); // view, update, delete, ..., etc
+            // Here use Str::replace to ensure backward compability with
+            // previous interface in order to avoid introducing breakchages.
+            // The `attach` methods were replace by `grant`.
+            $operation = Str::replace('attach', 'grant', $matches[1]);
+            $method = $operation . 'Permission';
+            $permission_name = Str::lcfirst($matches[2]);
 
             if ($permission_name == 'crud')
             {
@@ -271,7 +298,7 @@ Trait Permissionable
                 $method = $operation . 'ManyPermissions';
             }
 
-            $arguments[] = $permission_name;    // append to the arg array
+            $arguments[] = $permission_name;
             return call_user_func_array(array(self::class, $method), $arguments);
         }
 

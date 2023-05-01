@@ -323,10 +323,10 @@ Here is a summary of the auxilary methods provided by `Permissionable`:
 | `deleteUpdatePermission`   | Delete the permission for updating the model.                                      |
 | `deleteDeletePermission`   | Delete the permission for deleting the model.                                      |
 | `deleteCrudPermissions`    | Delete the permissions to view, update, delete the model.                          |
-| `attachViewPermission`     | Attach the permission for viewing the model to the given user/role.                |
-| `attachUpdatePermission`   | Attach the permission for updating the model to the given user/role.               |
-| `attachDeletePermission`   | Attach the permission for deleting the model to the given user/role.               |
-| `attachCrudPermissions`    | Attach the permissions to view, update, delete the model to the given user/role.   |
+| `grantViewPermission`      | Grant the permission for viewing the model to the given user/role.                 |
+| `grantUpdatePermission`    | Grant the permission for updating the model to the given user/role.                |
+| `grantDeletePermission`    | Grant the permission for deleting the model to the given user/role.                |
+| `grantCrudPermissions`     | Grant the permissions to view, update, delete the model to the given user/role.    |
 | `revokeViewPermission`     | Revoke the permission for viewing the model from the given user/role.              |
 | `revokeUpdatePermission`   | Revoke the permission for updating the model from the given user/role.             |
 | `revokeDeletePermission`   | Revoke the permission for deleting the model from the given user/role.             |
@@ -341,7 +341,7 @@ The create-permission  helpers  will  either  fetch  from  or  insert  into  the
 database the associated permission, depending on whether it  already  exists  or
 not. The get-permissions helpers assume the permission exists in  DB,  and  then
 try to fetch. The delete-permission helpers will try to delete  the  permissions
-in DB, but does not assume they already exist.  The  attach-permmission  helpers
+in DB, but does not assume they already exist.  The  grant  permmission  helpers
 will assign the permissions to  the  user  or  to  the  given  user/role,  which
 assumes the permissions already exist (if they don't exist,  an  Error  will  be
 thrown). The revoke-permission helpers try to revoke  the  permission  from  the
@@ -387,11 +387,11 @@ $article->deleteDeletePermission();
 $article->deleteCrudPermissions();
 ```
 
-Attach the permissions to the user:
+Grant the permissions to the user:
 
 ```php
 <?php
-// you can fetch the permissions manually and then attach it to the user or role
+// you can fetch the permissions manually and then grant it to the user or role
 $viewPermission = $article->getViewPermission();
 $role->addPermission($viewPermission); // assign to a role
 $user->addPermission($viewPermission); // assign to a specific user
@@ -400,13 +400,13 @@ $crudPermissions = $article->getCrudPermissions();
 $user->addPermissions($crudPermissions);
 $role->addPermissions($crudPermissions);
 
-// but it is easier to attach them via the model
-$article->attachViewPermission($role);
-$article->attachViewPermission($user);
+// but it is easier to grant them via the model
+$article->grantViewPermission($role);
+$article->grantViewPermission($user);
 
-// attach all crud permissions to the given user/role
-$article->attachCrudPermissions($user);
-$article->attachCrudPermissions($role);
+// grant all crud permissions to the given user/role
+$article->grantCrudPermissions($user);
+$article->grantCrudPermissions($role);
 ```
 
 Revoking permissions is done in the same way:
@@ -609,12 +609,12 @@ permission, the only difference is that the methods are static.
 // so, instead of
 $article->createCrudPermissions();
 $article->deleteUpdatePermission();
-$article->attachDeletePermission($user);
+$article->grantDeletePermission($user);
 
 // we basically do:
 Article::createCrudPermissions();
 Article::deleteUpdateAnyPermission();
-Article::attachDeleteAnyPermission($user);
+Article::grantDeleteAnyPermission($user);
 ```
 
 In the second example above, the user would be able to delete all articles
