@@ -114,7 +114,7 @@ class HasRoleTest extends TestCase
         $mixed = $roles->merge($otherRoles)->shuffle();
 
         $user->addRoles($roles);
-        $this->assertTrue($user->hasAnyRoles($mixed));
+        $this->assertTrue($user->hasAnyRole($mixed));
     }
 
     /**
@@ -215,6 +215,6 @@ class HasRoleTest extends TestCase
         $this->assertTrue($users->random()->hasRoles($roles));
         User::delRolesFromMany($roles, $users);
         $this->assertTrue($f() == 0);
-        $this->assertFalse($users->random()->hasAnyRoles($roles));
+        $this->assertFalse($users->random()->hasAnyRole($roles));
     }
 }

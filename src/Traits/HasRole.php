@@ -189,7 +189,7 @@ Trait HasRole
      * @param Uwla\Lacl\Role[]|string[] $roles
      * @return bool
      */
-    public function hasAnyRoles($roles)
+    public function hasAnyRole($roles)
     {
         return $this->hasHowManyRoles($roles) > 0;
     }

@@ -161,8 +161,8 @@ $user->hasRoles($roles);                    // using Eloquent Collection
 $user->hasRoles(['editor', 'manager']);     // using strig names
 
 // check whether the user has at least one of the given roles
-$user->hasAnyRoles($roles);                 // using Eloquent Collection
-$user->hasAnyRoles(['editor', 'manager']);  // using strig names
+$user->hasAnyRole($roles);                 // using Eloquent Collection
+$user->hasAnyRole(['editor', 'manager']);  // using strig names
 ```
 
 Count how many roles the user has (returns `@int`):

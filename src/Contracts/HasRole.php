@@ -102,7 +102,7 @@ Interface HasRole
      * @param \Uwla\Lacl\Role[]|string[] $roles
      * @return bool
     */
-    public function hasAnyRoles($roles);
+    public function hasAnyRole($roles);
 
     /**
      * add single role to many models
