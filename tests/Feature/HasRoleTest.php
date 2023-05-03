@@ -189,4 +189,32 @@ class HasRoleTest extends TestCase
         $user->delAllRoles();
         $this->assertEquals($user->countRoles(), 0);
     }
+
+    /**
+     * Test addition and deletion of roles to many users
+     *
+     * @return void
+     */
+    public function test_mass_role_attribution()
+    {
+        $n = 70;
+        $m = 8;
+        $users = User::factory($n)->create();
+        $roles = Role::factory($m)->create();
+
+
+        $uid = $users->pluck('id');
+        $rid = $roles->pluck('id');
+        $f = fn() => UserRole::query()
+            ->whereIn('user_id', $uid)
+            ->whereIn('role_id', $rid)
+            ->count();
+
+        User::addRolesToMany($roles, $users);
+        $this->assertTrue($f() == $n * $m);
+        $this->assertTrue($users->random()->hasRoles($roles));
+        User::delRolesFromMany($roles, $users);
+        $this->assertTrue($f() == 0);
+        $this->assertFalse($users->random()->hasAnyRoles($roles));
+    }
 }

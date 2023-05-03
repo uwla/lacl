@@ -243,7 +243,7 @@ Trait HasRole
     */
     public static function delRoleFromMany($role, $models)
     {
-        self::delRolesFromMany($role, $models);
+        self::delRolesFromMany([$role], $models);
     }
 
     /**
