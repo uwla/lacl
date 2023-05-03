@@ -294,6 +294,33 @@ class HasPermissionTest extends TestCase
         $role->delAllPermissions();
         $this->assertEquals($role->countPermissions(), 0);
     }
+
+    /**
+     * Test addition and deletion of roles to many users
+     *
+     * @return void
+     */
+    public function test_mass_permission_attribution()
+    {
+        $n = 70;
+        $m = 10;
+        $permissions = Permission::factory($n)->create();
+        $roles = Role::factory($m)->create();
+
+        $pid = $permissions->pluck('id');
+        $rid = $roles->pluck('id');
+        $f = fn() => RolePermission::query()
+            ->whereIn('permission_id', $pid)
+            ->whereIn('role_id', $rid)
+            ->count();
+
+        Role::addPermissionsToMany($permissions, $roles);
+        $this->assertTrue($f() == $n * $m);
+        $this->assertTrue($roles->random()->hasPermissions($permissions));
+        Role::delPermissionsFromMany($permissions, $roles);
+        $this->assertTrue($f() == 0);
+        $this->assertFalse($roles->random()->hasAnyPermission($permissions));
+    }
 }
 
 ?>

@@ -73,6 +73,8 @@ Trait HasPermission
             throw new Exception('Permissions must be array or Eloquent Collection');
         if (is_string($normalized->first()))
             $normalized = Permission::getPermissionsByName($permissions, $resource, $ids);
+        else if (! $normalized->first() instanceof Permission)
+            throw new Exception('Expected a collection of Permission. Got something else.');
         return $normalized;
     }
 
@@ -493,7 +495,7 @@ Trait HasPermission
                 // be explained in the documentation.
                 $toCreate[] = [
                     'permission_id' => $permission->id,
-                    'model_id' => $model->getSelfRoleId(),
+                    'role_id' => $model->getSelfRoleId(),
                 ];
             }
         }
@@ -523,7 +525,7 @@ Trait HasPermission
     {
         $permissions = self::normalizePermissions($permissions);
         $models = self::normalizeModels($models);
-        $pids = $permissions->pluck('ids');
+        $pids = $permissions->pluck('id');
         $rids = $models->map(fn($m) => $m->getSelfRoleId());
         RolePermission::query()
             ->whereIn('permission_id', $pids)
