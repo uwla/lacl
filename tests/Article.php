@@ -4,10 +4,9 @@ namespace Tests;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Uwla\Lacl\Contracts\Permissionable as PermissionableContract;
 use Uwla\Lacl\Traits\Permissionable;
 
-class Article extends Model implements PermissionableContract
+class Article extends Model
 {
     use HasFactory, Permissionable;
 

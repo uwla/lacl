@@ -6,15 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Uwla\Lacl\Contracts\HasPermission as HasPermissionContract;
-use Uwla\Lacl\Contracts\HasRole as HasRoleContract;
 use Uwla\Lacl\Database\Factories\UserFactory;
-use Uwla\Lacl\Traits\HasPermission;
 use Uwla\Lacl\Traits\HasRole;
 
-class User extends Authenticatable implements HasRoleContract, HasPermissionContract
+class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasPermission, HasRole;
+    use HasApiTokens, HasFactory, Notifiable, HasRole;
 
     /**
      * The attributes that are mass assignable.

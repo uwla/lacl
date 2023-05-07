@@ -5,7 +5,6 @@ namespace Uwla\Lacl\Traits;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Contracts\HasPermission;
 
 Trait Permissionable
 {
@@ -127,7 +126,7 @@ Trait Permissionable
      * @param mixed         $modelId
      * @return void
      */
-    protected static function grantPermission(HasPermission $model, $permissionName, $modelId=null)
+    protected static function grantPermission($model, $permissionName, $modelId=null)
     {
         $permission = self::getPermission($permissionName, $modelId);
         $model->addPermission($permission);
@@ -141,7 +140,7 @@ Trait Permissionable
      * @param mixed         $modelId
      * @return void
      */
-    protected static function revokePermission(HasPermission $model, $permissionName, $modelId=null)
+    protected static function revokePermission($model, $permissionName, $modelId=null)
     {
         $permission = self::getPermission($permissionName, $modelId);
         $model->delPermission($permission);
@@ -216,7 +215,7 @@ Trait Permissionable
      * @param mixed         $modelid
      * @return void
      */
-    protected static function grantManyPermissions(HasPermission $model, $names, $modelId=null)
+    protected static function grantManyPermissions($model, $names, $modelId=null)
     {
         $permissions = self::getManyPermissions($names, $modelId);
         $model->addPermissions($permissions);
@@ -230,7 +229,7 @@ Trait Permissionable
      * @param mixed         $modelid
      * @return void
      */
-    protected static function revokeManyPermissions(HasPermission $model, $names, $modelId=null)
+    protected static function revokeManyPermissions($model, $names, $modelId=null)
     {
         $permissions = self::getManyPermissions($names, $modelId);
         $model->delPermissions($permissions);

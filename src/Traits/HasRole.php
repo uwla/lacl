@@ -13,6 +13,8 @@ use Illuminate\Support\Collection;
 
 Trait HasRole
 {
+    use HasPermission;
+
     /**
      * Get a base query to keep building on it
      *

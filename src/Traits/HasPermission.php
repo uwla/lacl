@@ -11,7 +11,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
-use Uwla\Lacl\Contracts\Permissionable;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
@@ -258,8 +257,6 @@ Trait HasPermission
     {
         // type validation for the class, using the reflection helper
         $instance = (new ReflectionClass($class))->newInstance();
-        if (! $instance instanceof Permissionable)
-            throw new BadMethodCallException('Class should abide to Permissionable contract.');
         if (! $instance instanceof Model)
             throw new BadMethodCallException('Class should Eloquent model.');
 
@@ -377,8 +374,6 @@ Trait HasPermission
         if (count($arguments) != 1)
             throw new ArgumentCountError("Too much arguments");
         $model = $arguments[0];
-        if (!$model instanceof Permissionable)
-            throw new BadMethodCallException("Argument must be of type Permissionable");
 
         // now, extract the adequate values
         $permissionPrefix = $model::getPermissionPrefix();

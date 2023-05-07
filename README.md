@@ -298,10 +298,9 @@ First, make sure the class do use the trait.
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Uwla\Lacl\Contracts\Permissionable as PermissionableContract;
 use Uwla\Lacl\Traits\Permissionable;
 
-class Article extends Model implements PermissionableContract
+class Article extends Model
 {
     use Permissionable;
 }
@@ -525,8 +524,8 @@ handles custom behavior in the following way:
    the remaining method name.
 4. It will then call one  of  the  following  `hasPermission`,  `addPermission`,
    `delPermission`, depending on the method name.
-5. If an argument is passed, it is assumed to be a  class  that  implements  the
-   `PermissionableContract`, provided by this  package.  The  permission  to  be
+5. If an argument is passed,  it  is  assumed  to  be  a  class  that  uses  the
+   `Permissionable` trait, provided  by  this  package.  The  permission  to  be
    create/checked/delete will be a model-based permission
 
 The default convention  is  that  the  permission  name  is  prefixed  with  the
