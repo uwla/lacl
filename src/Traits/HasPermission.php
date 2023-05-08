@@ -136,23 +136,27 @@ Trait HasPermission
     /**
      * add single permission
      *
-     * @param mixed $permission
+     * @param mixed $permissions    The permission or their names
+     * @param mixed $resource       The model class
+     * @param mixed $id             The model id
      * @return void
      */
-    public function addPermission($permission)
+    public function addPermission($permission, $resource=null, $id=null)
     {
-        $this->addPermissions([$permission]);
+        $this->addPermissions([$permission], $resource, [$id]);
     }
 
     /**
      * add many permissions
      *
-     * @param mixed $permissions
+     * @param mixed $permissions    The permission or their names
+     * @param mixed $resource       The model class
+     * @param mixed $ids            The model ids
      * @return void
      */
-    public function addPermissions($permissions)
+    public function addPermissions($permissions, $resource=null, $ids=null)
     {
-        $permissions = self::normalizePermissions($permissions);
+        $permissions = self::normalizePermissions($permissions, $resource, $ids);
         $toAdd = [];
         foreach ($permissions as $permission)
         {
@@ -161,31 +165,34 @@ Trait HasPermission
                 'role_id' => $this->getSelfRoleId()
             ];
         }
-
         RolePermission::insert($toAdd);
     }
 
     /**
      * revoke a permission associated with this role
      *
-     * @param mixed $permission
+     * @param mixed $permissions    The permission or their names
+     * @param mixed $resource       The model class
+     * @param mixed $id             The model id
      * @return void
      */
-    public function delPermission($permission)
+    public function delPermission($permission, $resource=null, $id=null)
     {
-        $this->delPermissions([$permission]);
+        $this->delPermissions([$permission], $resource, [$id]);
     }
 
     /**
      * revoke the given permissions associated with this role
      *
-     * @param mixed $permissions
+     * @param mixed $permissions    The permission or their names
+     * @param mixed $resource       The model class
+     * @param mixed $ids            The model ids
      * @return void
      */
-    public function delPermissions($permissions)
+    public function delPermissions($permissions, $resource=null, $ids=null)
     {
         // get ids of the permissions
-        $ids = $this->getPermissionIds($permissions);
+        $ids = $this->getPermissionIds($permissions, $resource, $ids);
 
         // delete current role permissions
         RolePermission::query()
@@ -339,54 +346,28 @@ Trait HasPermission
      */
     public function __call($name, $arguments)
     {
-        $possiblePrefixes = ['hasPermissionTo', 'addPermissionTo', 'delPermissionTo'];
-        $matchingPrefix = '';
-
-        // if the undefined method called does not start with the prefix, let
-        // the parent class deal with it.
-        foreach ($possiblePrefixes as $prefix)
+        $pattern = '/^(add|has|del)PermissionTo([A-Za-z]+)$/';
+        $matches = [];
+        if (preg_match($pattern, $name, $matches))
         {
-            if (Str::startsWith($name, $prefix))
+            $operation = $matches[1];
+            $method = $operation . 'Permission';
+            $permission_name = Str::lcfirst($matches[2]);
+            $args = [];
+            if (empty($arguments))
             {
-                $matchingPrefix = $prefix;
-                break;
+                $args = [ $permission_name ];
+            } else {
+                $model = $arguments[0];
+                $class = $model::class;
+                $id = $model->getModelId();
+                $permission_prefix = $model::getPermissionPrefix();
+                $permission_name = $permission_prefix . '.' . $permission_name;
+                $args = [ $permission_name, $class, $id ];
             }
+            return call_user_func_array(array($this, $method), $args);
         }
-
-        if ($matchingPrefix == '')
-            return parent::__call($name, $arguments);
-
-        // get the name of the permission called after it
-        $suffix = Str::after($name, $matchingPrefix);
-        $permissionName = $this->guessPermissionName($suffix);
-
-        if (empty($arguments))
-        {
-            if ($matchingPrefix == 'hasPermissionTo')
-                return $this->hasPermission($permissionName);
-            if ($matchingPrefix == 'addPermissionTo')
-                return $this->addPermission($permissionName);
-            if ($matchingPrefix == 'delPermissionTo')
-                return $this->delPermission($permissionName);
-        }
-
-        // do some argument validation
-        if (count($arguments) != 1)
-            throw new ArgumentCountError("Too much arguments");
-        $model = $arguments[0];
-
-        // now, extract the adequate values
-        $permissionPrefix = $model::getPermissionPrefix();
-        $permissionName = $permissionPrefix . '.' . $permissionName;
-        $id = $model->getModelId();
-        $class = $model::class;
-
-        if ($matchingPrefix == 'hasPermissionTo')
-            return $this->hasPermission($permissionName, $class, $id);
-        if ($matchingPrefix == 'addPermissionTo')
-            return $this->addPermission($permissionName, $class, $id);
-        if ($matchingPrefix == 'delPermissionTo')
-            return $this->delPermission($permissionName, $class, $id);
+        return parent::__call($name, $arguments);
     }
 
     /**

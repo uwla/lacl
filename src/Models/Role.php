@@ -2,14 +2,14 @@
 
 namespace Uwla\Lacl\Models;
 
-use Uwla\Lacl\Traits\HasPermission;
+use Uwla\Lacl\Traits\PermissionableHasRole;
 use Uwla\Lacl\Database\Factories\RoleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    use HasFactory, HasPermission;
+    use HasFactory, PermissionableHasRole;
 
     /**
      * The attributes that are mass assignable.
