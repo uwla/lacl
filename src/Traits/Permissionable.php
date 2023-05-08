@@ -4,11 +4,10 @@ namespace Uwla\Lacl\Traits;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
-use Uwla\Lacl\Models\Permission;
 
 Trait Permissionable
 {
-    use Identifiable;
+    use Identifiable, CustomAclModels;
 
     /**
      * Delete all permissions associated with this model instance.
@@ -17,7 +16,7 @@ Trait Permissionable
      */
     public function deletetThisModelPermissions()
     {
-        Permission::where([
+        self::Permission()::where([
             'model' => $this::class,
             'model_id' => $this->getModelId(),
         ])->delete();
@@ -30,7 +29,7 @@ Trait Permissionable
      */
     public static function deletetAllModelPermissions()
     {
-        Permission::where('model', self::class)->delete();
+        self::Permission()::where('model', self::class)->delete();
     }
 
     /**
@@ -40,7 +39,7 @@ Trait Permissionable
      */
     public static function deletetGenericModelPermissions()
     {
-        Permission::where([
+        self::Permission()::where([
             'model' => self::class,
             'model_id' => null
         ])->delete();
@@ -81,9 +80,9 @@ Trait Permissionable
      * @param mixed  $modelId
      * @return Permission
      */
-    protected static function createPermission($permissionName, $modelId=null): Permission
+    protected static function createPermission($permissionName, $modelId=null)
     {
-        return Permission::firstOrCreate([
+        return self::Permission()::firstOrCreate([
             'model' => self::class,
             'model_id' => $modelId,
             'name' => self::getPermissionPrefix() . '.' . $permissionName,
@@ -97,9 +96,9 @@ Trait Permissionable
      * @param mixed  $modelId
      * @return Permission
      */
-    protected static function getPermission($permissionName, $modelId=null): Permission
+    protected static function getPermission($permissionName, $modelId=null)
     {
-        return Permission::where([
+        return self::Permission()::where([
             'model' => self::class,
             'model_id' => $modelId,
             'name' => self::getPermissionPrefix() . '.' . $permissionName,
@@ -169,7 +168,7 @@ Trait Permissionable
             ];
         }
 
-        Permission::insert($toCreate);
+        self::Permission()::insert($toCreate);
         return self::getManyPermissions($names, $modelId);
     }
 
@@ -183,7 +182,7 @@ Trait Permissionable
     protected static function getManyPermissions($names, $modelId=null): Collection
     {
         $names = self::getPrefixed($names);
-        return Permission::query()
+        return self::Permission()::query()
             ->whereIn('name', $names)
             ->where('model', self::class)
             ->where('model_id', $modelId)
@@ -200,7 +199,7 @@ Trait Permissionable
     protected static function deleteManyPermissions($names, $modelId=null)
     {
         $names = self::getPrefixed($names);
-        Permission::query()
+        self::Permission()::query()
             ->whereIn('name', $names)
             ->where('model', self::class)
             ->where('model_id', $modelId)

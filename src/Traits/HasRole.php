@@ -3,7 +3,6 @@
 namespace Uwla\Lacl\Traits;
 
 use Exception;
-use Uwla\Lacl\Exceptions\NoSuchRoleException;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
@@ -28,6 +27,7 @@ Trait HasRole
             return RolePermission::where('permission_id', $this->id);
     }
 
+
     /**
      * Get the roles associated with this model
      *
@@ -36,7 +36,7 @@ Trait HasRole
     public function getRoles()
     {
         $roleIds = $this->getBaseQuery()->get()->pluck('role_id');
-        return Role::whereIn('id', $roleIds)->get();
+        return self::Role()::whereIn('id', $roleIds)->get();
     }
 
     /**
@@ -92,7 +92,7 @@ Trait HasRole
     /**
      * delete single role
      *
-     * @param Uwla\Lacl\Role|string $role
+     * @param  Role|string $role
      * @return void
      */
     public function delRole($role)
@@ -162,15 +162,15 @@ Trait HasRole
     /**
      * check whether this model has the given role
      *
-     * @param Uwla\Lacl\Role]|string $role
+     * @param  Role|string $role
      * @return bool
      */
     public function hasRole($role)
     {
         if (gettype($role) == 'string')
-            $role = Role::where('name', $role)->first();
-        if (! ($role instanceof Role))
-            throw new NoSuchRoleException('Role does not exist');
+            $role = self::Role()::where('name', $role)->first();
+        if (! $role instanceof Role)
+            throw new Exception('Role must be valid role');
         return $this->getBaseQuery()->where('role_id', $role->id)->exists();
     }
 
@@ -251,7 +251,7 @@ Trait HasRole
     /**
      * delete many roles from many models
      *
-     * @param \Uwla\Lacl\Role[]|string[] $role
+     * @param Role[]|string[] $role
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
@@ -294,7 +294,7 @@ Trait HasRole
             throw new Exception('Roles must not be empty');
         if (is_string($roles->first()))
         {
-            $roles = Role::whereIn('name', $roles)->get();
+            $roles = self::Role()::whereIn('name', $roles)->get();
             if ($roles->count() != $n)
                 throw new Exception('One or more roles do not exist.');
         }

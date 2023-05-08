@@ -2,7 +2,6 @@
 
 namespace Uwla\Lacl\Traits;
 
-use ArgumentCountError;
 use BadMethodCallException;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +17,7 @@ use Uwla\Lacl\Models\UserRole;
 
 Trait HasPermission
 {
-    use Identifiable;
+    use Identifiable, CustomAclModels;
 
     /**
      * Ensure this object is instance of a Role.
@@ -36,12 +35,12 @@ Trait HasPermission
             $roleName = $this::class . ':' . $this->id;
 
             // get the role that uniquely represents this user
-            $role = Role::where('name', $roleName)->first();
+            $role = self::Role()::where('name', $roleName)->first();
 
             // if null, create it
             if ($role == null)
             {
-                $role = Role::create(['name' => $roleName]);
+                $role = self::Role()::create(['name' => $roleName]);
                 $this->addRole($role);
             }
 
@@ -71,7 +70,7 @@ Trait HasPermission
         if (! $normalized instanceof Collection)
             throw new Exception('Permissions must be array or Eloquent Collection');
         if (is_string($normalized->first()))
-            $normalized = Permission::getPermissionsByName($permissions, $resource, $ids);
+            $normalized = self::Permission()::getByName($permissions, $resource, $ids);
         else if (! $normalized->first() instanceof Permission)
             throw new Exception('Expected a collection of Permission. Got something else.');
         return $normalized;
@@ -120,6 +119,7 @@ Trait HasPermission
         else if ($this instanceof Role)
             return [$id];
     }
+
 
     /**
      * Guess the name of the permission called upon dynamic method.
@@ -252,7 +252,7 @@ Trait HasPermission
     public function getPermissions()
     {
         $ids = $this->getThisPermissionsIds();
-        return Permission::whereIn('id', $ids)->get();
+        return self::Permission()::whereIn('id', $ids)->get();
     }
 
     /**
@@ -270,7 +270,7 @@ Trait HasPermission
         if (gettype($permissionNames) == 'string')
             $permissionNames = [$permissionNames];
 
-        $query = Permission::query()
+        $query = self::Permission()::query()
             ->where('model', $class)
             ->whereNotNull('model_id')
             ->whereIn('id', $this->getThisPermissionsIds());
@@ -309,7 +309,7 @@ Trait HasPermission
             ->pluck('permission_id');
 
         // retrieve the permissions by id
-        return Permission::whereIn('id', $ids)->get();
+        return self::Permission()::whereIn('id', $ids)->get();
     }
 
     /**
