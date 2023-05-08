@@ -29,12 +29,12 @@ class PermissionTest extends TestCase
         ]);
 
         $arr = ['article.viewAny', 'article.updateAny'];
-        $p = Permission::getPermissionsByName($arr);
+        $p = Permission::getByName($arr);
         $p = $p->filter(fn($el) => in_array($el->name, $arr));
         $this->assertTrue($p->count() == 4);
 
         $m = 'Article';
-        $p = Permission::getPermissionsByName($arr, $m);
+        $p = Permission::getByName($arr, $m);
         $p = $p->filter(fn($el) => in_array($el->name, $arr) && $el->model == $m);
         $this->assertTrue($p->count() == 2);
     }
@@ -45,7 +45,7 @@ class PermissionTest extends TestCase
             'manage users', 'dispatch jobs', 'delete articles', 'upload files',
             'create teams', 'view orders', 'edit roles',
         ];
-        $created = Permission::createPermissionsByName($names);
+        $created = Permission::createMany($names);
         $found = Permission::whereIn('name', $names)->get();
         $this->assertTrue($created->diff($found)->isEmpty());
     }

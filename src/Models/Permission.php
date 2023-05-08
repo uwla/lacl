@@ -28,13 +28,15 @@ class Permission extends Model
     /**
       * Get permissions by their name
       *
-      * @param array<string> $names     The names of the permissions
-      * @param mixed         $modelType The class name of the model (optional)
-      * @param mixed         $models    The models or their ids (optional)
+      * @param array<string>|string $names     The names of the permissions
+      * @param mixed                $modelType The class name of the model (optional)
+      * @param mixed                $models    The models or their ids (optional)
       * @return \Illuminate\Database\Eloquent\Collection
       */
-    public static function getPermissionsByName($names, $modelType=null, $models=null)
+    public static function getByName($names, $modelType=null, $models=null)
     {
+        if (is_string($names))
+            $names = [$names];
         if (! is_array($names))
             throw new InvalidArgumentException('First arg must be string array');
 
@@ -89,12 +91,23 @@ class Permission extends Model
     }
 
     /**
-      * Create permissions with the provided names
+      * Create one permission by the provided name
       *
-      * @param array<string> $names
+      * @param  array<string> $names
       * @return \Illuminate\Database\Eloquent\Collection
       */
-    public static function createPermissionsByName($names)
+    public static function createOne($name)
+    {
+        return self::create(['name' => $name]);
+    }
+
+    /**
+      * Create permissions by the provided names
+      *
+      * @param  array<string> $names
+      * @return \Illuminate\Database\Eloquent\Collection
+      */
+    public static function createMany($names)
     {
         if (! is_array($names))
             throw new InvalidArgumentException('Expected string array');
