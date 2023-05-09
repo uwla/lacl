@@ -32,7 +32,7 @@ A demo app is available on github at
 
 ## FAQ
 
-**Why should I use this package instead of popular ones, such as spatie
+**Why should I use  this  package  instead  of  popular  ones,  such  as  spatie
 permissions?**
 
 This   package   provides   some   functionality   that   spatie's   and   other
@@ -87,12 +87,11 @@ Add Traits to the application's user class:
 <?php
 
 use Uwla\Lacl\Traits\HasRole;
-use Uwla\Lacl\Traits\HasPermission;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasPermission, HasRole;
+    use HasRole;
 
     //
 }
@@ -261,7 +260,15 @@ Create an arbitrary permission:
 $permission = Permission::create([
   'name' => $customName,
   'description' => $optionalDescription,
-])
+]);
+
+// shorter way
+$permission = Permission::createOne('View confindential documents');
+
+// or many at once
+$permissions = Permission::createMany([
+    'view documents', 'edit documents', 'upload files',
+]);
 ```
 
 Create a permission for a given model:
@@ -306,30 +313,36 @@ class Article extends Model
 }
 ```
 
+**OBS**: If your model needs to use both `Permissionable` and `HasRole`  traits,
+then you will be better off using the `PermissionableHasRole`  trait,  which  is
+basically a mix of the both that solves a method conflict between the two.  That
+could be the case for the `User` class, which could have roles and at  the  same
+time be a permissionable model.
+
 Here is a summary of the auxilary methods provided by `Permissionable`:
 
-| Name                       | Description                                                                        |
-| :------------------------- | :--------------------------------------------------------------------------------- |
-| `createViewPermission`     | Create permission for viewing the model.                                           |
-| `createUpdatePermission`   | Create permission for updating the model.                                          |
-| `createDeletePermission`   | Create permission for deleting the model.                                          |
-| `createCrudPermissions`    | Create permissions to view, update, delete the model.                              |
-| `getViewPermission`        | Get the permission for viewing the model.                                          |
-| `getUpdatePermission`      | Get the permission for updating the model.                                         |
-| `getDeletePermission`      | Get the permission for deleting the model.                                         |
-| `getCrudPermissions`       | Get the permissions to view, update, delete the model.                             |
-| `deleteViewPermission`     | Delete the permission for viewing the model.                                       |
-| `deleteUpdatePermission`   | Delete the permission for updating the model.                                      |
-| `deleteDeletePermission`   | Delete the permission for deleting the model.                                      |
-| `deleteCrudPermissions`    | Delete the permissions to view, update, delete the model.                          |
-| `grantViewPermission`      | Grant the permission for viewing the model to the given user/role.                 |
-| `grantUpdatePermission`    | Grant the permission for updating the model to the given user/role.                |
-| `grantDeletePermission`    | Grant the permission for deleting the model to the given user/role.                |
-| `grantCrudPermissions`     | Grant the permissions to view, update, delete the model to the given user/role.    |
-| `revokeViewPermission`     | Revoke the permission for viewing the model from the given user/role.              |
-| `revokeUpdatePermission`   | Revoke the permission for updating the model from the given user/role.             |
-| `revokeDeletePermission`   | Revoke the permission for deleting the model from the given user/role.             |
-| `revokeCrudPermissions`    | Revoke the permissions to view, update, delete the model from the given user/role. |
+| Name                       | Description                                                            |
+| :------------------------- | :--------------------------------------------------------------------- |
+| `createViewPermission`     | Create permission for viewing the model.                               |
+| `createUpdatePermission`   | Create permission for updating the model.                              |
+| `createDeletePermission`   | Create permission for deleting the model.                              |
+| `createCrudPermissions`    | Create permissions above.                                              |
+| `getViewPermission`        | Get the permission for viewing the model.                              |
+| `getUpdatePermission`      | Get the permission for updating the model.                             |
+| `getDeletePermission`      | Get the permission for deleting the model.                             |
+| `getCrudPermissions`       | Get the permissions above.                                             |
+| `deleteViewPermission`     | Delete the permission for viewing the model.                           |
+| `deleteUpdatePermission`   | Delete the permission for updating the model.                          |
+| `deleteDeletePermission`   | Delete the permission for deleting the model.                          |
+| `deleteCrudPermissions`    | Delete the permissions above.                                          |
+| `grantViewPermission`      | Grant the permission for viewing the model to the given user/role.     |
+| `grantUpdatePermission`    | Grant the permission for updating the model to the given user/role.    |
+| `grantDeletePermission`    | Grant the permission for deleting the model to the given user/role.    |
+| `grantCrudPermissions`     | Grant the permissions above to the given user/role.                    |
+| `revokeViewPermission`     | Revoke the permission for viewing the model from the given user/role.  |
+| `revokeUpdatePermission`   | Revoke the permission for updating the model from the given user/role. |
+| `revokeDeletePermission`   | Revoke the permission for deleting the model from the given user/role. |
+| `revokeCrudPermissions`    | Revoke the permissions above from the given user/role.                 |
 
 As you can see, the per-model permissions are 'view',  'update',  and  'delete'.
 This is because the most generic actions a user can perform on  a  single  model
@@ -745,6 +758,27 @@ permission to perform the action associated with the method. The  goal  here  is
 to have an automated process of  Access  Control,  freeing  the  developer  from
 having to manually check if the user has the permission to  perform  the  common
 CRUD operations.
+
+## Overriding Permissions and Role models
+
+It is possible to override the models which are used by the traits `HasRole`,
+`HasPermission`, `Permissionable`, `PermissionableHasRole`.
+
+To do so, just override the protected static methods `Permission` and `Role`:
+
+```php
+<?php
+
+protected static function Permission()
+{
+    return CustomPermission::class;
+}
+
+protected static function Role()
+{
+    return CustomRole::class;
+}
+```
 
 ## Contributions
 
