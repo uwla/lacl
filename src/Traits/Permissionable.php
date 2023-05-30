@@ -14,7 +14,7 @@ Trait Permissionable
      *
      * @return void
      */
-    public function deletetThisModelPermissions()
+    public function deleteThisModelPermissions()
     {
         self::Permission()::where([
             'model' => $this::class,
@@ -27,7 +27,7 @@ Trait Permissionable
      *
      * @return void
      */
-    public static function deletetAllModelPermissions()
+    public static function deleteAllModelPermissions()
     {
         self::Permission()::where('model', self::class)->delete();
     }
@@ -37,7 +37,7 @@ Trait Permissionable
      *
      * @return void
      */
-    public static function deletetGenericModelPermissions()
+    public static function deleteGenericModelPermissions()
     {
         self::Permission()::where([
             'model' => self::class,

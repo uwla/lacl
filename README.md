@@ -471,12 +471,12 @@ article, but one of its role has, the user will also have that permission.
 ### Per-model permission deletion
 
 To delete all per-model permissions associated with a model,
-you can use the `deletetThisModelPermissions` method that comes
+you can use the `deleteThisModelPermissions` method that comes
 with the `Permissionable` trait.
 
 ```php
 <?php
-$model->deletetThisModelPermissions();
+$model->deleteThisModelPermissions();
 ```
 
 If you want that behavior to  be  triggered  automatically  before  deleting  an
@@ -646,7 +646,7 @@ permissions:
 
 ```php
 <?php
-Article::deletetGenericModelPermissions();
+Article::deleteGenericModelPermissions();
 ```
 
 To delete all model permissions, both generic model  permissions  and  per-model
@@ -654,7 +654,7 @@ permissions (be careful with this one, since it will delete all of them):
 
 ```php
 <?php
-Article::deletetAllModelPermissions();
+Article::deleteAllModelPermissions();
 ```
 
 ### Resource Policy
