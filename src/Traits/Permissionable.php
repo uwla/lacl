@@ -29,7 +29,7 @@ Trait Permissionable
      */
     public static function deleteAllModelPermissions()
     {
-        self::Permission()::where('model', self::class)->delete();
+        self::Permission()::where('model', static::class)->delete();
     }
 
     /**
@@ -40,7 +40,7 @@ Trait Permissionable
     public static function deleteGenericModelPermissions()
     {
         self::Permission()::where([
-            'model' => self::class,
+            'model' => static::class,
             'model_id' => null
         ])->delete();
     }
@@ -54,7 +54,7 @@ Trait Permissionable
     public static function getPermissionPrefix()
     {
         // @see https://stackoverflow.com/questions/4636166/only-variables-should-be-passed-by-reference
-        $tmp = explode('\\', self::class);
+        $tmp = explode('\\', static::class);
         return strtolower(end($tmp));
     }
 
@@ -83,7 +83,7 @@ Trait Permissionable
     protected static function createPermission($permissionName, $modelId=null)
     {
         return self::Permission()::firstOrCreate([
-            'model' => self::class,
+            'model' => static::class,
             'model_id' => $modelId,
             'name' => self::getPermissionPrefix() . '.' . $permissionName,
         ]);
@@ -99,7 +99,7 @@ Trait Permissionable
     protected static function getPermission($permissionName, $modelId=null)
     {
         return self::Permission()::where([
-            'model' => self::class,
+            'model' => static::class,
             'model_id' => $modelId,
             'name' => self::getPermissionPrefix() . '.' . $permissionName,
         ])->first();
@@ -163,7 +163,7 @@ Trait Permissionable
         {
             $toCreate[] = [
                 'name' => $name,
-                'model' => self::class,
+                'model' => static::class,
                 'model_id' => $modelId,
             ];
         }
@@ -184,7 +184,7 @@ Trait Permissionable
         $names = self::getPrefixed($names);
         return self::Permission()::query()
             ->whereIn('name', $names)
-            ->where('model', self::class)
+            ->where('model', static::class)
             ->where('model_id', $modelId)
             ->get();
     }
@@ -201,7 +201,7 @@ Trait Permissionable
         $names = self::getPrefixed($names);
         self::Permission()::query()
             ->whereIn('name', $names)
-            ->where('model', self::class)
+            ->where('model', static::class)
             ->where('model_id', $modelId)
             ->delete();
     }
@@ -263,7 +263,7 @@ Trait Permissionable
 
             $arguments[] = $permission_name;
             $arguments[] = $this->getModelId();
-            return call_user_func_array(array(self::class, $method), $arguments);
+            return call_user_func_array(array(static::class, $method), $arguments);
         }
 
         return parent::__call($name, $arguments);
@@ -297,7 +297,7 @@ Trait Permissionable
             }
 
             $arguments[] = $permission_name;
-            return call_user_func_array(array(self::class, $method), $arguments);
+            return call_user_func_array(array(static::class, $method), $arguments);
         }
 
         return parent::__callStatic($name, $arguments);

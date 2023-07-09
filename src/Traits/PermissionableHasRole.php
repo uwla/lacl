@@ -32,7 +32,7 @@ Trait PermissionableHasRole
 
             $arguments[] = $permission_name;
             $arguments[] = $this->getModelId();
-            return call_user_func_array(array(self::class, $method), $arguments);
+            return call_user_func_array(array(static::class, $method), $arguments);
         }
 
         // PART 2
