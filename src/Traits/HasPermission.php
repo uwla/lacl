@@ -508,6 +508,93 @@ Trait HasPermission
             ->whereIn('role_id', $rids)
             ->delete();
     }
+
+    /**
+     * Get the name of the id column of this model class
+     *
+     * @return string
+    */
+    public static function getIdColumn()
+    {
+        return 'id';
+    }
+
+    /**
+     * Get the given models with their permissions
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection|array $models
+     * @return \Illuminate\Database\Eloquent\Collection
+    */
+    public static function withPermissions($models)
+    {
+        // normalize models
+        $models = self::normalizeModels($models);
+
+        // get the name of the id column of the model
+        $idCol = static::getIdColumn();
+
+        // get the model ids
+        $mids = $models->pluck();
+
+        // get the association models
+        $rps = RolePermission::query()
+            ->whereIn('model_id', $mids)
+            ->where('model', static::class)
+            ->get();
+
+        // get the permission ids
+        $pids = $rps->pluck('permission_id');
+
+        // get the permissions
+        $permissions = Permission::whereIn('id', $pids)->get();
+
+        // build a map ID -> MODEL
+        $id2model = [];
+        foreach($models as $m)
+        {
+            $mid = $m[$idCol];
+            $id2model[$mid] = $m;
+        }
+
+        // build a map ID -> PERMISSION
+        $id2permissions = [];
+        foreach($permissions as $p)
+        {
+            $pid = $p->id;
+            $id2permissions[$pid] = $p;
+        }
+
+        // initialize permissions array
+        foreach($models as $m)
+            $m->permissions = [];
+
+        // assign the permission to the model
+        foreach ($rps as $rp)
+        {
+            $mid = $rp->model_id;
+            $pid = $rp->permission_id;
+            $m = $id2model[$mid];
+            $p = $id2permissions[$pid];
+            $m->permissions[] = $p;
+        }
+
+        // return the model
+        return $models;
+    }
+
+    /**
+     * Get the given models with their permission names
+     *
+     * @param  \Illuminate\Database\Eloquent\Collection|array $models
+     * @return \Illuminate\Database\Eloquent\Collection
+    */
+    public static function withPermissionNames($models)
+    {
+        $models = static::withPermission($models);
+        foreach ($models as $m)
+            $m->permissions = $m->permissions->pluck('name');
+        return $models;
+    }
 }
 
 ?>
