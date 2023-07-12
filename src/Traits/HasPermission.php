@@ -118,6 +118,8 @@ Trait HasPermission
             return UserRole::where('user_id', $id)->get()->pluck('role_id');
         else if ($this instanceof Role)
             return [$id];
+        else
+            throw new Exception('This class must be an instance of User or Role');
     }
 
 
@@ -227,7 +229,7 @@ Trait HasPermission
     /**
      * get the permission ids associated with this object
      *
-     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
+     * @return \Illuminate\Support\Collection
      */
     private function getThisPermissionsIds()
     {
@@ -235,7 +237,7 @@ Trait HasPermission
 
         // if should have at least one role; otherwise has no permission
         if (count($roleIds) == 0)
-            return [];
+            return collect([]);
 
         // get the ids of the permissions associated with this object's roles
         return RolePermission::query()
@@ -247,7 +249,7 @@ Trait HasPermission
     /**
      * get all permissions associated with this object
      *
-     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
+     * @return \Illuminate\Database\Eloquent\Collection
       */
     public function getPermissions()
     {
@@ -315,7 +317,7 @@ Trait HasPermission
     /**
      * get the name of the permissions associated with this object
      *
-     * @return array<string>
+     * @return \Illuminate\Support\Collection
      */
     public function getPermissionNames()
     {
@@ -435,7 +437,7 @@ Trait HasPermission
     /**
      * add single permission to many models
      *
-     * @param \Uwla\Lacl\Permission|string $permission
+     * @param mixed $permission
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
@@ -447,7 +449,7 @@ Trait HasPermission
     /**
      * add many permissions to many models
      *
-     * @param \Uwla\Lacl\Permission[]|string[] $permission
+     * @param mixed $permission
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
@@ -481,7 +483,7 @@ Trait HasPermission
    /**
      * delete a single permission from many models
      *
-     * @param \Uwla\Lacl\Permission|string $permission
+     * @param mixed $permission
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
@@ -493,7 +495,7 @@ Trait HasPermission
     /**
      * delete many permissions from many models
      *
-     * @param \Uwla\Lacl\Permission[]|string[] $permission
+     * @param mixed $permission
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
     */
@@ -520,9 +522,9 @@ Trait HasPermission
     }
 
     /**
-     * Get the given models with their permissions
+     * Get the given roles with their permissions
      *
-     * @param  \Illuminate\Database\Eloquent\Collection|array $models
+     * @param  mixed $models
      * @return \Illuminate\Database\Eloquent\Collection
     */
     public static function withPermissions($models)
@@ -534,12 +536,11 @@ Trait HasPermission
         $idCol = static::getIdColumn();
 
         // get the model ids
-        $mids = $models->pluck();
+        $mids = $models->pluck($idCol);
 
         // get the association models
         $rps = RolePermission::query()
-            ->whereIn('model_id', $mids)
-            ->where('model', static::class)
+            ->whereIn('role_id', $mids)
             ->get();
 
         // get the permission ids
@@ -548,7 +549,7 @@ Trait HasPermission
         // get the permissions
         $permissions = Permission::whereIn('id', $pids)->get();
 
-        // build a map ID -> MODEL
+        // build a map ID -> role
         $id2model = [];
         foreach($models as $m)
         {
@@ -583,14 +584,14 @@ Trait HasPermission
     }
 
     /**
-     * Get the given models with their permission names
+     * Get the given roles with their permission names
      *
-     * @param  \Illuminate\Database\Eloquent\Collection|array $models
+     * @param  mixed $models
      * @return \Illuminate\Database\Eloquent\Collection
     */
     public static function withPermissionNames($models)
     {
-        $models = static::withPermission($models);
+        $models = static::withPermissions($models);
         foreach ($models as $m)
             $m->permissions = $m->permissions->pluck('name');
         return $models;

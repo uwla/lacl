@@ -1,0 +1,49 @@
+# ignore vendor packages
+node_modules
+vendor
+
+# ignore cache
+__pycache__
+.phpunit*
+
+# ignore compiled assets
+*.o
+*.out
+*.class
+
+# ignore compressed files
+*.tar
+*.tar.bz2
+*.tar.gz
+*.tgz
+*.bz2
+*.rar
+*.zip
+*.7z
+
+# ignore videos
+*.mp4
+*.mov
+*.mkv
+*.webm
+
+# ignore R files
+.RData
+.Rproj.user
+*.Rproj.user
+*.Rhistory
+*.Rproj
+Rplots.pdf
+
+# ignore LaTeX builds
+*.log
+*.fls
+*.fdb_latexmk
+*.aux
+*.synctex.gz
+_minted-*
+
+# ignore other IDE files
+tags
+!tags/
+.vscode

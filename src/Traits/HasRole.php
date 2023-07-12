@@ -3,12 +3,12 @@
 namespace Uwla\Lacl\Traits;
 
 use Exception;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Collection;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RolePermission;
 use Uwla\Lacl\Models\UserRole;
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Collection;
 
 Trait HasRole
 {
@@ -25,13 +25,15 @@ Trait HasRole
             return UserRole::where([['user_id', '=', $this->id], ['role_id', '!=', $this->getSelfRoleId()]]);
         else if ($this instanceof Permission)
             return RolePermission::where('permission_id', $this->id);
+        else
+            throw new Exception('This class should be instance of User or Permission.');
     }
 
 
     /**
      * Get the roles associated with this model
      *
-     * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Role>
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getRoles()
     {
@@ -42,7 +44,7 @@ Trait HasRole
     /**
      * Get the name of the roles associated with this model
      *
-     * @return array<string>
+     * @return \Illuminate\Support\Collection
      */
     public function getRoleNames()
     {
@@ -52,7 +54,7 @@ Trait HasRole
     /**
      * add single role
      *
-     * @param Uwla\Lacl\Role|string $role
+     * @param  mixed $role
      * @return void
      */
     public function addRole($role)
@@ -63,7 +65,7 @@ Trait HasRole
     /**
      * add many roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param  mixed $roles
      * @return void
      */
     public function addRoles($roles)
@@ -79,8 +81,7 @@ Trait HasRole
         }
 
         $toAdd = [];
-        foreach ($roles as $role)
-        {
+        foreach ($roles as $role) {
             $toAdd[] = [
                 $key => $this->id,
                 'role_id' => $role->id,
@@ -103,7 +104,7 @@ Trait HasRole
     /**
      * delete the given roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param  mixed $roles
      * @return void
      */
     public function delRoles($roles)
@@ -126,7 +127,7 @@ Trait HasRole
     /**
      * set a single role associated with this model
      *
-     * @param Uwla\Lacl\Role|string $role
+     * @param  mixed $role
      * @return void
      */
     public function setRole($role)
@@ -137,7 +138,7 @@ Trait HasRole
     /**
      * set the role associated with this model
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param  mixed $roles
      * @return void
      */
     public function setRoles($roles)
@@ -169,7 +170,7 @@ Trait HasRole
     {
         if (gettype($role) == 'string')
             $role = self::Role()::where('name', $role)->first();
-        if (! $role instanceof Role)
+        if (!$role instanceof Role)
             throw new Exception('Role must be valid role');
         return $this->getBaseQuery()->where('role_id', $role->id)->exists();
     }
@@ -177,7 +178,7 @@ Trait HasRole
     /**
      * check whether this model has the given roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $role
+     * @param  mixed $role
      * @return bool
      */
     public function hasRoles($roles)
@@ -188,7 +189,7 @@ Trait HasRole
     /**
      * check whether this model has any of the given roles
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param  mixed $roles
      * @return bool
      */
     public function hasAnyRole($roles)
@@ -199,10 +200,10 @@ Trait HasRole
     /**
      * add single role to many models
      *
-     * @param \Uwla\Lacl\Role|string $role
+     * @param mixed $role
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
-    */
+     */
     public static function addRoleToMany($role, $models)
     {
         self::addRolesToMany([$role], $models);
@@ -211,10 +212,10 @@ Trait HasRole
     /**
      * add many roles to many models
      *
-     * @param \Uwla\Lacl\Role[]|string[] $roles
+     * @param mixed $roles
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
-    */
+     */
     public static function addRolesToMany($roles, $models)
     {
         $roles = self::normalizeRoles($roles);
@@ -223,10 +224,8 @@ Trait HasRole
         $role_ids = $roles->pluck('id');
         $user_ids = $models->pluck('id');
         $toCreate = [];
-        foreach ($role_ids as $rid)
-        {
-            foreach($user_ids as $uid)
-            {
+        foreach ($role_ids as $rid) {
+            foreach ($user_ids as $uid) {
                 $toCreate[] = [
                     'role_id' => $rid,
                     'user_id' => $uid,
@@ -239,10 +238,10 @@ Trait HasRole
     /**
      * delete a single role from many models
      *
-     * @param \Uwla\Lacl\Role|string $role
+     * @param mixed $role
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
-    */
+     */
     public static function delRoleFromMany($role, $models)
     {
         self::delRolesFromMany([$role], $models);
@@ -251,10 +250,10 @@ Trait HasRole
     /**
      * delete many roles from many models
      *
-     * @param Role[]|string[] $role
+     * @param mixed $role
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
-    */
+     */
     public static function delRolesFromMany($roles, $models)
     {
         $roles = self::normalizeRoles($roles);
@@ -263,10 +262,86 @@ Trait HasRole
         UserRole::whereIn('role_id', $rids)->whereIn('user_id', $uids)->delete();
     }
 
+
+    /**
+     * Get the given models along with their roles
+     *
+     * @param  mixed $models
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function withRoles($models)
+    {
+        // normalize models
+        $users = self::normalizeModels($models);
+
+        // get the name of the id column of the model
+        $idCol = static::getIdColumn();
+
+        // get the model ids
+        $uids = $users->pluck($idCol);
+
+        // get the association models
+        $urs = UserRole::query()
+            ->whereIn('user_id', $uids)
+            ->get();
+
+        // get the permission ids
+        $rids = $urs->pluck('role_id');
+
+        // get the roles
+        $roles = Role::whereIn('id', $rids)->get();
+
+        // build a map ID -> USER
+        $id2user = [];
+        foreach ($users as $u)
+        {
+            $uid = $u[$idCol];
+            $id2user[$uid] = $u;
+        }
+
+        // build a map ID -> ROLE
+        $id2role = [];
+        foreach ($roles as $r)
+        {
+            $rid = $r->id;
+            $id2role[$rid] = $r;
+        }
+
+        // initialize role array
+        foreach ($users as $u)
+            $u->roles = [];
+
+        foreach ($urs as $ur)
+        {
+            $rid = $ur->role_id;
+            $uid = $ur->user_id;
+            $u = $id2user[$uid];
+            $r = $id2role[$rid];
+            $u->roles[] = $r;
+        }
+
+        // return the model
+        return $users;
+    }
+
+    /**
+     * Get the given users with their roles names
+     *
+     * @param  mixed $models
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function withRoleNames($models)
+    {
+        $models = static::withPermission($models);
+        foreach ($models as $m)
+            $m->permissions = $m->permissions->pluck('name');
+        return $models;
+    }
+
     /**
      * get how many of the given roles this model has
      *
-     * @param Uwla\Lacl\Role[]|string[] $roles
+     * @param  mixed $roles
      * @return int
      */
     private function hasHowManyRoles($roles)
