@@ -10,12 +10,18 @@ use Uwla\Lacl\Models\UserRole;
 class HasRoleTest extends TestCase
 {
     /**
+     * How many users to create
+     *
+     * @var int
+     */
+    private $n = 80;
+
+    /**
      * How many roles to create
      *
      * @var int
      */
-    private $n = 15;
-    private $m = 8;
+    private $m = 12;
 
     /**
      * Test addition of single role
@@ -44,7 +50,7 @@ class HasRoleTest extends TestCase
     public function test_add_roles()
     {
         $user = User::factory()->createOne();
-        $roles = Role::factory($this->n)->create();
+        $roles = Role::factory($this->m)->create();
 
         $user->addRoles($roles);
         $ids = UserRole::query()
@@ -62,7 +68,7 @@ class HasRoleTest extends TestCase
     public function test_get_roles()
     {
         $user = User::factory()->createOne();
-        $roles = Role::factory($this->n)->create();
+        $roles = Role::factory($this->m)->create();
 
         $user->addRoles($roles);
         $user_roles = $user->getRoles();
@@ -93,7 +99,7 @@ class HasRoleTest extends TestCase
     public function test_has_roles()
     {
         $user = User::factory()->createOne();
-        $roles = Role::factory($this->n)->create();
+        $roles = Role::factory($this->m)->create();
         $otherRoles = Role::factory($this->m)->create();
 
         $user->addRoles($roles);
@@ -109,7 +115,7 @@ class HasRoleTest extends TestCase
     public function test_has_any_roles()
     {
         $user = User::factory()->createOne();
-        $roles = Role::factory($this->n)->create();
+        $roles = Role::factory($this->m)->create();
         $otherRoles = Role::factory($this->m)->create();
         $mixed = $roles->merge($otherRoles)->shuffle();
 
@@ -125,8 +131,8 @@ class HasRoleTest extends TestCase
     public function test_set_role()
     {
         $user = User::factory()->createOne();
-        $roles = Role::factory($this->n)->create();
-        $role = $roles->random(1)[0];
+        $roles = Role::factory($this->m)->create();
+        $role = $roles->random();
 
         // old roles
         $user->addRoles($roles);
@@ -143,7 +149,7 @@ class HasRoleTest extends TestCase
     public function test_set_roles()
     {
         $user = User::factory()->createOne();
-        $oldRoles = Role::factory($this->n)->create();
+        $oldRoles = Role::factory($this->m)->create();
         $newRoles = Role::factory($this->m)->create();
 
         // old roles
@@ -163,7 +169,8 @@ class HasRoleTest extends TestCase
      */
     public function test_del_roles()
     {
-        $n = $this->n; $m = $this->m;
+        $m = $this->m;
+        $n = $m * 5;
         $user = User::factory()->createOne();
         $roles = Role::factory($n)->create();
         $toDel = $roles->random($m);
@@ -180,12 +187,12 @@ class HasRoleTest extends TestCase
      */
     public function test_del_all_roles()
     {
-        $n = $this->n;
+        $m = $this->m;
         $user = User::factory()->createOne();
-        $roles = Role::factory($n)->create();
+        $roles = Role::factory($m)->create();
 
         $user->addRoles($roles);
-        $this->assertEquals($user->countRoles(), $n);
+        $this->assertEquals($user->countRoles(), $m);
         $user->delAllRoles();
         $this->assertEquals($user->countRoles(), 0);
     }
@@ -197,11 +204,10 @@ class HasRoleTest extends TestCase
      */
     public function test_mass_role_attribution()
     {
-        $n = 70;
-        $m = 8;
+        $n = $this->n;
+        $m = $this->m;
         $users = User::factory($n)->create();
         $roles = Role::factory($m)->create();
-
 
         $uid = $users->pluck('id');
         $rid = $roles->pluck('id');
@@ -216,5 +222,24 @@ class HasRoleTest extends TestCase
         User::delRolesFromMany($roles, $users);
         $this->assertTrue($f() == 0);
         $this->assertFalse($users->random()->hasAnyRole($roles));
+    }
+
+    /**
+     * Test getting users along with their roles
+     *
+     * @return void
+     */
+    public function test_get_users_with_their_roles()
+    {
+        $n = $this->n;
+        $m = $this->m;
+        $users = User::factory($n)->create();
+        $roles = Role::factory($m)->create();
+        $users->each(fn($u) => $u->addRoles($roles->random(2, $m)));
+
+        $this->assertTrue(true);
+        $users = User::withRoleNames($users);
+        foreach ($users as $u)
+            $this->assertEquals($u->roles, $u->getRoleNames());
     }
 }

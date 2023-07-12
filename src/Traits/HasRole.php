@@ -29,7 +29,6 @@ Trait HasRole
             throw new Exception('This class should be instance of User or Permission.');
     }
 
-
     /**
      * Get the roles associated with this model
      *
@@ -262,7 +261,6 @@ Trait HasRole
         UserRole::whereIn('role_id', $rids)->whereIn('user_id', $uids)->delete();
     }
 
-
     /**
      * Get the given models along with their roles
      *
@@ -309,7 +307,7 @@ Trait HasRole
 
         // initialize role array
         foreach ($users as $u)
-            $u->roles = [];
+            $u->roles = collect();
 
         foreach ($urs as $ur)
         {
@@ -317,7 +315,7 @@ Trait HasRole
             $uid = $ur->user_id;
             $u = $id2user[$uid];
             $r = $id2role[$rid];
-            $u->roles[] = $r;
+            $u->roles->add($r);
         }
 
         // return the model
@@ -332,10 +330,10 @@ Trait HasRole
      */
     public static function withRoleNames($models)
     {
-        $models = static::withPermission($models);
-        foreach ($models as $m)
-            $m->permissions = $m->permissions->pluck('name');
-        return $models;
+        $users = static::withRoles($models);
+        foreach ($users as $u)
+            $u->roles = $u->roles->pluck('name');
+        return $users;
     }
 
     /**
