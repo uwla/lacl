@@ -17,8 +17,8 @@ class HasPermissionTest extends TestCase
      *
      * @var int
      */
-    private $n = 12;
-    private $m = 7;
+    private $n = 20;
+    private $m = 15;
 
     /**
      * Set up the test instance
@@ -320,6 +320,24 @@ class HasPermissionTest extends TestCase
         Role::delPermissionsFromMany($permissions, $roles);
         $this->assertTrue($f() == 0);
         $this->assertFalse($roles->random()->hasAnyPermission($permissions));
+    }
+
+    /**
+     * Test getting roles along with their permissions
+     *
+     * @return void
+     */
+    public function test_get_roles_with_permissions()
+    {
+        $n = $this->n;
+        $m = $this->m;
+        $roles = Role::factory($m)->create();
+        $permissions = Permission::factory($n)->create();
+        $roles->each(fn($r) => $r->addPermissions($permissions->random(1, $n)));
+
+        $roles = Role::withPermissionNames($roles);
+        foreach ($roles as $r)
+            $this->assertEquals($r->permissions, $r->getPermissionNames());
     }
 }
 

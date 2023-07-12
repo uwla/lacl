@@ -530,13 +530,10 @@ Trait HasPermission
     public static function withPermissions($models)
     {
         // normalize models
-        $models = self::normalizeModels($models);
+        $roles = self::normalizeModels($models);
 
-        // get the name of the id column of the model
-        $idCol = static::getIdColumn();
-
-        // get the model ids
-        $mids = $models->pluck($idCol);
+        // get the roles ids
+        $mids = $roles->pluck('id');
 
         // get the association models
         $rps = RolePermission::query()
@@ -550,37 +547,37 @@ Trait HasPermission
         $permissions = Permission::whereIn('id', $pids)->get();
 
         // build a map ID -> role
-        $id2model = [];
-        foreach($models as $m)
+        $id2role = [];
+        foreach($roles as $r)
         {
-            $mid = $m[$idCol];
-            $id2model[$mid] = $m;
+            $rid = $r->id;
+            $id2role[$rid] = $r;
         }
 
         // build a map ID -> PERMISSION
-        $id2permissions = [];
+        $id2permission = [];
         foreach($permissions as $p)
         {
             $pid = $p->id;
-            $id2permissions[$pid] = $p;
+            $id2permission[$pid] = $p;
         }
 
         // initialize permissions array
-        foreach($models as $m)
-            $m->permissions = [];
+        foreach($roles as $r)
+            $r->permissions = collect();
 
         // assign the permission to the model
         foreach ($rps as $rp)
         {
-            $mid = $rp->model_id;
+            $rid = $rp->role_id;
             $pid = $rp->permission_id;
-            $m = $id2model[$mid];
-            $p = $id2permissions[$pid];
-            $m->permissions[] = $p;
+            $r = $id2role[$rid];
+            $p = $id2permission[$pid];
+            $r->permissions->add($p);
         }
 
-        // return the model
-        return $models;
+        // return the roles
+        return $roles;
     }
 
     /**
