@@ -28,7 +28,7 @@ particular. This is better than adding a 'user_id' column in the articles table.
 ## Demo
 
 A demo app is available on github at
-[uwla/lacl-demo1](https://github.com/uwla/lacl-demo1) to illustrate usage.
+[uwla/lacl-demo](https://github.com/uwla/lacl-demo) to illustrate usage.
 
 ## FAQ
 
@@ -36,7 +36,7 @@ A demo app is available on github at
 permissions?**
 
 This   package   provides   some   functionality   that   spatie's   and   other
-permission-managament packages do not provide, such as per-model permission  and
+permission-management packages do not provide, such as per-model permission  and
 Resource  Policy  automation.  At  the  same  time,   their   packages   provide
 functionality that this package does not provide, such as searching  permissions
 based on wildcards or support  for  team  permissions.  Please,  read  the  full
@@ -131,7 +131,7 @@ $user->getRoles();      // get Eloquent models
 $user->getRoleNames();  // get string names
 ```
 
-Delete role (returns `@void`):
+Delete role (returns `void`):
 
 ```php
 <?php
@@ -141,13 +141,13 @@ $user->delRole('editor');   // using string name
 
 // multiple roles
 $user->delRole($roles);                     // using Eloquent Collection
-$user->delRole(['editor', 'manager']);      // using strig names
+$user->delRole(['editor', 'manager']);      // using string names
 
 // all roles
 $user->delAllRoles();
 ```
 
-Has role (returns `@bool`):
+Has role (returns `bool`):
 
 ```php
 <?php
@@ -157,18 +157,38 @@ $user->hasRole('editor');   // using string name
 
 // check whether the user has all of the given multiple roles
 $user->hasRoles($roles);                    // using Eloquent Collection
-$user->hasRoles(['editor', 'manager']);     // using strig names
+$user->hasRoles(['editor', 'manager']);     // using string names
 
 // check whether the user has at least one of the given roles
 $user->hasAnyRole($roles);                 // using Eloquent Collection
-$user->hasAnyRole(['editor', 'manager']);  // using strig names
+$user->hasAnyRole(['editor', 'manager']);  // using string names
 ```
 
-Count how many roles the user has (returns `@int`):
+Count how many roles the user has (returns `int`):
 
 ```php
 <?php
 $user->countRoles();
+```
+
+Get multiple users along with their roles:
+
+```php
+<?php
+$users = User::withRoles($users);
+
+// access the roles via the 'roles' property
+$users[0]->users
+```
+
+Get multiple users along with the names of their roles:
+
+```php
+<?php
+$users = User::withRoleNames($users);
+
+// access the role names via the 'roles' property
+$users[0]->users
 ```
 
 ### HasPermission
@@ -199,11 +219,11 @@ $role->setPermission(Permission::first());       // using Eloquent model
 $role->setPermission('manage client emails');    // using string name
 
 // multiple permissions
-$role->setPermission(Permission::all());                            // using Eloquent Collection
-$role->setPermission(['user.view', 'user.create', 'user.delete']);  // using string names
+$role->setPermissions(Permission::all());                           // using Eloquent Collection
+$role->setPermissions(['user.view', 'user.create', 'user.delete']); // using string names
 ```
 
-Get the permissions of the role (returns `Collection<Permission>` or `array<string>`):
+Get the permissions of the role (return a `Collection` of `Permission` or `string`):
 
 ```php
 <?php
@@ -211,23 +231,23 @@ $role->getPermissions();      // get Eloquent models
 $role->getPermissionNames();  // get string names
 ```
 
-Delete permission (returns `@void`):
+Delete permission (returns `void`):
 
 ```php
 <?php
 // single permission
-$role->delPermission($permission);  // using Eloquent model
-$role->delPermission('view mails'); // using string name
+$role->delPermission($permission);   // using Eloquent model
+$role->delPermission('view emails'); // using string name
 
 // multiple permissions
 $role->delPermission($permissions);               // using Eloquent Collection
-$role->delPermission(['user.view', 'user.del']);  // using strig names
+$role->delPermission(['user.view', 'user.del']);  // using string names
 
 // all permissions
 $role->delAllPermissions();
 ```
 
-Has role (returns `@bool`):
+Has role (returns `bool`):
 
 ```php
 <?php
@@ -237,18 +257,38 @@ $role->hasPermission('user.view');    // using string name
 
 // check whether the role has all of the given permissions
 $role->hasPermissions($permissions);              // using Eloquent Collection
-$role->hasPermissions(['user.view', 'user.del']); // using strig names
+$role->hasPermissions(['user.view', 'user.del']); // using string names
 
 // check whether the role has at least one of the given permissions
 $role->hasAnyPermissions($permissions);               // using Eloquent Collection
-$role->hasAnyPermissions(['user.view', 'user.del']);  // using strig names
+$role->hasAnyPermissions(['user.view', 'user.del']);  // using string names
 ```
 
-Count how many permissions the role has (returns `@int`):
+Count how many permissions the role has (returns `int`):
 
 ```php
 <?php
 $role->countPermissions();
+```
+
+Get multiple roles along with their permissions:
+
+```php
+<?php
+$roles = Role::withPermissions($roles);
+
+// access the permissions via the 'permission' property
+$roles[0]->permissions
+```
+
+Get multiple roles along with the name of their permissions:
+
+```php
+<?php
+$roles = Role::withPermissionNames($roles);
+
+// access the permission names via the 'permission' property
+$roles[0]->permissions
 ```
 
 ### Permissions
@@ -263,7 +303,7 @@ $permission = Permission::create([
 ]);
 
 // shorter way
-$permission = Permission::createOne('View confindential documents');
+$permission = Permission::createOne('View confidential documents');
 
 // or many at once
 $permissions = Permission::createMany([
@@ -319,7 +359,7 @@ basically a mix of the both that solves a method conflict between the two.  That
 could be the case for the `User` class, which could have roles and at  the  same
 time be a permissionable model.
 
-Here is a summary of the auxilary methods provided by `Permissionable`:
+Here is a summary of the auxiliary methods provided by `Permissionable`:
 
 | Name                       | Description                                                            |
 | :------------------------- | :--------------------------------------------------------------------- |
@@ -353,7 +393,7 @@ The create-permission  helpers  will  either  fetch  from  or  insert  into  the
 database the associated permission, depending on whether it  already  exists  or
 not. The get-permissions helpers assume the permission exists in  DB,  and  then
 try to fetch. The delete-permission helpers will try to delete  the  permissions
-in DB, but does not assume they already exist.  The  grant  permmission  helpers
+in DB, but does not assume they already  exist.  The  grant  permission  helpers
 will assign the permissions to  the  user  or  to  the  given  user/role,  which
 assumes the permissions already exist (if they don't exist,  an  Error  will  be
 thrown). The revoke-permission helpers try to revoke  the  permission  from  the
@@ -468,7 +508,7 @@ assigned specifically to him plus the permissions assigned to any role  he  has.
 Therefore, it the user does not  have  a  direct  permission  to  the  view  the
 article, but one of its role has, the user will also have that permission.
 
-### Per-model permission deletion
+#### Per-model permission deletion
 
 To delete all per-model permissions associated with a model,
 you can use the `deleteThisModelPermissions` method that comes
@@ -506,7 +546,7 @@ because when you use Eloquent Models for mass deletion it  will  not  fetch  the
 models first and later deleted them  one  by  one;  it  will,  instead,  send  a
 deletion query to the database and that is.
 
-### Per-model permission dynamically
+#### Per-model permission dynamically
 
 There is a shorter, cleaner way (aka, syntax sugar) to deal with permissions:
 
@@ -524,7 +564,7 @@ $user->hasPermissionToSendEmails(); // false
 ```
 
 Whenever you call a method that it is undefined, it will trigger PHP's  language
-construct `__calll`  method,  which  allows  us  programmers  to  define  custom
+construct `__call`   method,  which  allows  us  programmers  to  define  custom
 behavior to handle undefined methods. In this case,  the  `HasPermission`  trait
 handles custom behavior in the following way:
 
@@ -563,7 +603,7 @@ $role->addPermissionToUpdate($article);
 Notice that before adding a permission, the permission should already exist.  If
 the permission does not exist, you should create it.
 
-### Per-model permission model fetching
+#### Per-model permission model fetching
 
 Here is how to fetch the models of a specific type that the user or a role has
 access to:
@@ -609,8 +649,8 @@ particular instance of a model.
 
 Those generic  model  permissions  are  `create`,  `viewAny`,  `updateAny`,  and
 `deleteAny`. They are designed to follow the standards of Laravel  Policies.  Of
-course, you can redfine those and use the custom names you want, but it is  more
-convenient to stick to those convetions because we can  automate  tasks  instead
+course, you can redefine those and use the custom names you want, but it is more
+convenient to stick to those conventions because we can  automate  tasks instead
 of manually defining custom names.
 
 The interface for generic model permissions are the same as  for  the  per-model
@@ -677,7 +717,7 @@ The convention is:
 - To restore a specific model, the user must have either the `{model}.restoreAny`
   permission or the `{model}.restore` per-model permission for the specific model.
 
-Where `{model}` is the lowercase name of the model's classname. For example,  if
+Where `{model}` is the lowercase name of the model's class name. For example, if
 it is the `App\Models\User`, it would be `user`; if it is  `App\Models\Product`,
 it would be `product`.
 
