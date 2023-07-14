@@ -3,12 +3,9 @@
 namespace Uwla\Lacl\Traits;
 
 use Exception;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Collection;
-use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Role;
-use Uwla\Lacl\Models\RolePermission;
-use Uwla\Lacl\Models\UserRole;
+use Uwla\Lacl\Models\RoleModel;
 
 Trait HasRole
 {
@@ -21,12 +18,10 @@ Trait HasRole
      */
     private function getBaseQuery()
     {
-        if ($this instanceof User)
-            return UserRole::where([['user_id', '=', $this->id], ['role_id', '!=', $this->getSelfRoleId()]]);
-        else if ($this instanceof Permission)
-            return RolePermission::where('permission_id', $this->id);
-        else
-            throw new Exception('This class should be instance of User or Permission.');
+        return RoleModel::where([
+            'model' => $this::class,
+            'model_id' => $this->getModelId(),
+        ]);
     }
 
     /**
@@ -36,8 +31,8 @@ Trait HasRole
      */
     public function getRoles()
     {
-        $roleIds = $this->getBaseQuery()->get()->pluck('role_id');
-        return self::Role()::whereIn('id', $roleIds)->get();
+        $role_ids = $this->getBaseQuery()->pluck('role_id');
+        return static::Role()::whereIn('id', $role_ids)->get();
     }
 
     /**
@@ -69,24 +64,22 @@ Trait HasRole
      */
     public function addRoles($roles)
     {
-        $roles = self::normalizeRoles($roles);
+        $roles = static::normalizeRoles($roles);
 
-        if ($this instanceof User) {
-            $class = UserRole::class;
-            $key = 'user_id';
-        } else if ($this instanceof Permission) {
-            $class = RolePermission::class;
-            $key = 'permission_id';
-        }
+        //
+        $model = $this::class;
+        $model_id = $this->getModelId();
 
         $toAdd = [];
         foreach ($roles as $role) {
             $toAdd[] = [
-                $key => $this->id,
-                'role_id' => $role->id,
+                'model'   => $model,
+                'model_id' => $model_id,
+                'role_id'  => $role->id,
             ];
         }
-        $class::insert($toAdd);
+
+        RoleModel::insert($toAdd);
     }
 
     /**
@@ -108,7 +101,7 @@ Trait HasRole
      */
     public function delRoles($roles)
     {
-        $roles = self::normalizeRoles($roles);
+        $roles = static::normalizeRoles($roles);
         $ids = $roles->pluck('id');
         $this->getBaseQuery()->whereIn('role_id', $ids)->delete();
     }
@@ -168,7 +161,7 @@ Trait HasRole
     public function hasRole($role)
     {
         if (gettype($role) == 'string')
-            $role = self::Role()::where('name', $role)->first();
+            $role = static::Role()::where('name', $role)->first();
         if (!$role instanceof Role)
             throw new Exception('Role must be valid role');
         return $this->getBaseQuery()->where('role_id', $role->id)->exists();
@@ -205,7 +198,7 @@ Trait HasRole
      */
     public static function addRoleToMany($role, $models)
     {
-        self::addRolesToMany([$role], $models);
+        static::addRolesToMany([$role], $models);
     }
 
     /**
@@ -217,21 +210,23 @@ Trait HasRole
      */
     public static function addRolesToMany($roles, $models)
     {
-        $roles = self::normalizeRoles($roles);
+        $roles = static::normalizeRoles($roles);
 
-        // will add each role to each model
         $role_ids = $roles->pluck('id');
-        $user_ids = $models->pluck('id');
+        $model_ids = $models->pluck(static::getIdColumn());
+        $model = static::class;
+
         $toCreate = [];
         foreach ($role_ids as $rid) {
-            foreach ($user_ids as $uid) {
+            foreach ($model_ids as $mid) {
                 $toCreate[] = [
+                    'model' => $model,
+                    'model_id' => $mid,
                     'role_id' => $rid,
-                    'user_id' => $uid,
                 ];
             }
         }
-        UserRole::insert($toCreate);
+        RoleModel::insert($toCreate);
     }
 
     /**
@@ -243,7 +238,7 @@ Trait HasRole
      */
     public static function delRoleFromMany($role, $models)
     {
-        self::delRolesFromMany([$role], $models);
+        static::delRolesFromMany([$role], $models);
     }
 
     /**
@@ -255,10 +250,14 @@ Trait HasRole
      */
     public static function delRolesFromMany($roles, $models)
     {
-        $roles = self::normalizeRoles($roles);
+        $roles = static::normalizeRoles($roles);
         $rids = $roles->pluck('id');
-        $uids = $models->pluck('id');
-        UserRole::whereIn('role_id', $rids)->whereIn('user_id', $uids)->delete();
+        $uids = $models->pluck(static::getIdColumn());
+        RoleModel::query()
+            ->whereIn('role_id', $rids)
+            ->whereIn('model_id', $uids)
+            ->where('model', static::class)
+            ->delete();
     }
 
     /**
@@ -270,31 +269,32 @@ Trait HasRole
     public static function withRoles($models)
     {
         // normalize models
-        $users = self::normalizeModels($models);
+        $models = static::normalizeModels($models);
 
         // get the name of the id column of the model
         $idCol = static::getIdColumn();
 
         // get the model ids
-        $uids = $users->pluck($idCol);
+        $mids = $models->pluck($idCol);
 
         // get the association models
-        $urs = UserRole::query()
-            ->whereIn('user_id', $uids)
+        $rms = RoleModel::query()
+            ->where('model', static::class)
+            ->whereIn('model_id', $mids)
             ->get();
 
         // get the permission ids
-        $rids = $urs->pluck('role_id');
+        $rids = $rms->pluck('role_id');
 
         // get the roles
         $roles = Role::whereIn('id', $rids)->get();
 
         // build a map ID -> USER
-        $id2user = [];
-        foreach ($users as $u)
+        $id2model = [];
+        foreach ($models as $m)
         {
-            $uid = $u[$idCol];
-            $id2user[$uid] = $u;
+            $mid = $m[$idCol];
+            $id2model[$mid] = $m;
         }
 
         // build a map ID -> ROLE
@@ -306,20 +306,20 @@ Trait HasRole
         }
 
         // initialize role array
-        foreach ($users as $u)
-            $u->roles = collect();
+        foreach ($models as $m)
+            $m->roles = collect();
 
-        foreach ($urs as $ur)
+        foreach ($rms as $rm)
         {
-            $rid = $ur->role_id;
-            $uid = $ur->user_id;
-            $u = $id2user[$uid];
+            $mid = $rm->model_id;
+            $rid = $rm->role_id;
+            $m = $id2model[$mid];
             $r = $id2role[$rid];
-            $u->roles->add($r);
+            $m->roles->add($r);
         }
 
         // return the model
-        return $users;
+        return $models;
     }
 
     /**
@@ -344,7 +344,7 @@ Trait HasRole
      */
     private function hasHowManyRoles($roles)
     {
-        $roles = self::normalizeRoles($roles);
+        $roles = static::normalizeRoles($roles);
         $ids = $roles->pluck('id');
         $matchedRoles = $this->getBaseQuery()->whereIn('role_id', $ids)->get();
         return $matchedRoles->count();
@@ -367,7 +367,7 @@ Trait HasRole
             throw new Exception('Roles must not be empty');
         if (is_string($roles->first()))
         {
-            $roles = self::Role()::whereIn('name', $roles)->get();
+            $roles = static::Role()::whereIn('name', $roles)->get();
             if ($roles->count() != $n)
                 throw new Exception('One or more roles do not exist.');
         }

@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
         $roles = Role::all();
         foreach ($users as $user)
         {
-            $role = $roles->random(1)[0];
+            $role = $roles->random();
             $user->addRole($role);
         }
     }

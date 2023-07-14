@@ -5,52 +5,27 @@ namespace Uwla\Lacl\Traits;
 use BadMethodCallException;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use ReflectionClass;
+use Uwla\Lacl\Contracts\HasRoleContract;
 use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\Role;
-use Uwla\Lacl\Models\RolePermission;
-use Uwla\Lacl\Models\UserRole;
+use Uwla\Lacl\Models\PermissionModel;
+use Uwla\Lacl\Models\RoleModel;
 
 Trait HasPermission
 {
     use Identifiable, CustomAclModels;
 
     /**
-     * Ensure this object is instance of a Role.
-     * Some methods should only be called from a Role.
+     * Get the id of this model
      *
-     * @return void
+     * @return mixed
      */
-    private function getSelfRoleId()
+    protected function getSelfRoleId()
     {
-        if ($this instanceof Role)
-            return $this->id;
-
-        if ($this instanceof User)
-        {
-            $roleName = $this::class . ':' . $this->id;
-
-            // get the role that uniquely represents this user
-            $role = self::Role()::where('name', $roleName)->first();
-
-            // if null, create it
-            if ($role == null)
-            {
-                $role = self::Role()::create(['name' => $roleName]);
-                $this->addRole($role);
-            }
-
-            // return it
-            return $role->id;
-        }
-
-        throw new BadMethodCallException(
-            'HasPermission shall be used only with Role or User class'
-        );
+        return $this->id;
     }
 
     /**
@@ -70,7 +45,7 @@ Trait HasPermission
         if (! $normalized instanceof Collection)
             throw new Exception('Permissions must be array or Eloquent Collection');
         if (is_string($normalized->first()))
-            $normalized = self::Permission()::getByName($permissions, $resource, $ids);
+            $normalized = static::Permission()::getByName($permissions, $resource, $ids);
         else if (! $normalized->first() instanceof Permission)
             throw new Exception('Expected a collection of Permission. Got something else.');
         return $normalized;
@@ -89,7 +64,7 @@ Trait HasPermission
         if (! $models instanceof Collection)
             throw new Exception('Models must be array or Eloquent Collection');
         if (is_scalar($models->first()))
-            $models = self::find($models); // find by id
+            $models = static::find($models); // find by id
         return $models;
     }
 
@@ -99,29 +74,12 @@ Trait HasPermission
      * @param mixed  $permissions   The permissions to be normalized
      * @param string $resource      The class name of the resource model
      * @param mixed  $ids           The ids of the resources
-     * @return array<int>
+     * @return \Illuminate\Support\Collection
      */
     private function getPermissionIds($permissions, $resource=null, $ids=null)
     {
         return $this::normalizePermissions($permissions, $resource, $ids)->pluck('id');
     }
-
-    /**
-     * Get the ids of the object's roles
-     *
-     * @return array<int>
-     */
-    private function getRoleIds()
-    {
-        $id = $this->id;
-        if ($this instanceof User)
-            return UserRole::where('user_id', $id)->get()->pluck('role_id');
-        else if ($this instanceof Role)
-            return [$id];
-        else
-            throw new Exception('This class must be an instance of User or Role');
-    }
-
 
     /**
      * Guess the name of the permission called upon dynamic method.
@@ -158,16 +116,19 @@ Trait HasPermission
      */
     public function addPermissions($permissions, $resource=null, $ids=null)
     {
-        $permissions = self::normalizePermissions($permissions, $resource, $ids);
+        $permissions = static::normalizePermissions($permissions, $resource, $ids);
         $toAdd = [];
+        $model = $this::class;
+        $model_id = $this->getSelfRoleId();
         foreach ($permissions as $permission)
         {
             $toAdd[] = [
+                'model' => $model,
+                'model_id' => $model_id,
                 'permission_id' => $permission->id,
-                'role_id' => $this->getSelfRoleId()
             ];
         }
-        RolePermission::insert($toAdd);
+        PermissionModel::insert($toAdd);
     }
 
     /**
@@ -197,8 +158,11 @@ Trait HasPermission
         $ids = $this->getPermissionIds($permissions, $resource, $ids);
 
         // delete current role permissions
-        RolePermission::query()
-            ->where('role_id', $this->getSelfRoleId())
+        PermissionModel::query()
+            ->where([
+                'model_id' => $this->getSelfRoleId(),
+                'model' => $this::class,
+            ])
             ->whereIn('permission_id', $ids)
             ->delete();
     }
@@ -211,7 +175,10 @@ Trait HasPermission
      */
     public function delAllPermissions()
     {
-        RolePermission::where('role_id', $this->getSelfRoleId())->delete();
+        PermissionModel::where([
+            'model_id' => $this->getSelfRoleId(),
+            'model' => $this::class,
+        ])->delete();
     }
 
     /**
@@ -233,17 +200,31 @@ Trait HasPermission
      */
     private function getThisPermissionsIds()
     {
-        $roleIds = $this->getRoleIds();
+        $model_id = $this->getSelfRoleId();
+        $model= $this::class;
 
-        // if should have at least one role; otherwise has no permission
-        if (count($roleIds) == 0)
-            return collect([]);
+        $query = PermissionModel::where([
+            'model' => $model,
+            'model_id' => $model_id
+        ]);
 
-        // get the ids of the permissions associated with this object's roles
-        return RolePermission::query()
-            ->whereIn('role_id', $roleIds)
-            ->get()
-            ->pluck('permission_id');
+        if ($this instanceof HasRoleContract)
+        {
+            $role_ids = RoleModel::where([
+                'model' => $model,
+                'model_id' => $model_id
+            ])->pluck('role_id');
+
+            if ($role_ids->count() > 0)
+            {
+                $role_model = $this::Role();
+                $query->orWhere(function($q) use ($role_model, $role_ids) {
+                    $q->where('model', $role_model)->whereIn('model_id', $role_ids);
+                });
+            }
+        }
+
+        return $query->pluck('permission_id');
     }
 
     /**
@@ -254,7 +235,7 @@ Trait HasPermission
     public function getPermissions()
     {
         $ids = $this->getThisPermissionsIds();
-        return self::Permission()::whereIn('id', $ids)->get();
+        return static::Permission()::whereIn('id', $ids)->get();
     }
 
     /**
@@ -267,12 +248,12 @@ Trait HasPermission
         // type validation for the class, using the reflection helper
         $instance = (new ReflectionClass($class))->newInstance();
         if (! $instance instanceof Model)
-            throw new BadMethodCallException('Class should Eloquent model.');
+            throw new BadMethodCallException('Class should be Eloquent model.');
 
         if (gettype($permissionNames) == 'string')
             $permissionNames = [$permissionNames];
 
-        $query = self::Permission()::query()
+        $query = static::Permission()::query()
             ->where('model', $class)
             ->whereNotNull('model_id')
             ->whereIn('id', $this->getThisPermissionsIds());
@@ -296,22 +277,17 @@ Trait HasPermission
     }
 
     /**
-     * get the permissions associated with this user only, not with its roles.
+     * Get the permissions associated with this model only, not with its roles.
      *
      * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
      */
-    public function getUserPermissions()
+    public function getSelfPermissions()
     {
-        if (! $this instanceof User)
-            throw new BadMethodCallException("Should only be called upon a User.");
-
-        $ids = RolePermission::query()
-            ->whereIn('role_id', $this->getSelfRoleId())
-            ->get()
-            ->pluck('permission_id');
-
-        // retrieve the permissions by id
-        return self::Permission()::whereIn('id', $ids)->get();
+        $ids = PermissionModel::where([
+            'model' => $this::class,
+            'model_id' => $this->getSelfRoleId(),
+        ])->pluck('permission_id');
+        return static::Permission()::whereIn('id', $ids)->get();
     }
 
     /**
@@ -411,15 +387,14 @@ Trait HasPermission
      */
     private function hasHowManyPermissions($permissions, $resource, $ids)
     {
-        $roleIds = $this->getRoleIds();
-        if (count($roleIds) == 0) return 0;
+        // the ids of the permissions
+        $permission_ids = $this->getPermissionIds($permissions, $resource, $ids)->toArray();
 
-        $permissionIds = $this->getPermissionIds($permissions, $resource, $ids);
+        // the ids of the permissions of this model
+        $this_permission_ids = $this->getThisPermissionsIds()->toArray();
 
-        return RolePermission::query()
-            ->whereIn('role_id', $roleIds)
-            ->whereIn('permission_id', $permissionIds)
-            ->count();
+        // count the intersections
+        return count(array_intersect($permission_ids, $this_permission_ids));
     }
 
     /**
@@ -429,9 +404,7 @@ Trait HasPermission
      */
     public function countPermissions()
     {
-        $roleIds = $this->getRoleIds();
-        if (count($roleIds) == 0) return 0;
-        return RolePermission::whereIn('role_id', $roleIds)->count();
+        return $this->getThisPermissionsIds()->count();
     }
 
     /**
@@ -443,7 +416,7 @@ Trait HasPermission
     */
     public static function addPermissionToMany($permission, $models)
     {
-        self::addPermissionsToMany([$permission], $models);
+        static::addPermissionsToMany([$permission], $models);
     }
 
     /**
@@ -455,8 +428,8 @@ Trait HasPermission
     */
     public static function addPermissionsToMany($permissions, $models)
     {
-        $permissions = self::normalizePermissions($permissions);
-        $models = self::normalizeModels($models);
+        $permissions = static::normalizePermissions($permissions);
+        $models = static::normalizeModels($models);
         $toCreate = [];
         foreach ($permissions as $permission)
         {
@@ -473,11 +446,12 @@ Trait HasPermission
                 // be explained in the documentation.
                 $toCreate[] = [
                     'permission_id' => $permission->id,
-                    'role_id' => $model->getSelfRoleId(),
+                    'model_id' => $model->getSelfRoleId(),
+                    'model' => $model::class,
                 ];
             }
         }
-        RolePermission::insert($toCreate);
+        PermissionModel::insert($toCreate);
     }
 
    /**
@@ -489,25 +463,27 @@ Trait HasPermission
     */
     public static function delPermissionFromMany($permission, $models)
     {
-        self::delPermissionsFromMany([$permission], $models);
+        static::delPermissionsFromMany([$permission], $models);
     }
 
     /**
      * delete many permissions from many models
      *
      * @param mixed $permission
-     * @param \Illuminate\Database\Eloquent\Collection $models
+     * @param mixed $models
      * @return void
     */
     public static function delPermissionsFromMany($permissions, $models)
     {
-        $permissions = self::normalizePermissions($permissions);
-        $models = self::normalizeModels($models);
+        $permissions = static::normalizePermissions($permissions);
+        $models = static::normalizeModels($models);
         $pids = $permissions->pluck('id');
         $rids = $models->map(fn($m) => $m->getSelfRoleId());
-        RolePermission::query()
+        $model = $models->first()::class;
+        PermissionModel::query()
             ->whereIn('permission_id', $pids)
-            ->whereIn('role_id', $rids)
+            ->whereIn('model_id', $rids)
+            ->where('model', $model)
             ->delete();
     }
 
@@ -530,14 +506,18 @@ Trait HasPermission
     public static function withPermissions($models)
     {
         // normalize models
-        $roles = self::normalizeModels($models);
+        $roles = static::normalizeModels($models);
 
         // get the roles ids
         $mids = $roles->pluck('id');
 
+        // the model class
+        $model = $roles->first()::class;
+
         // get the association models
-        $rps = RolePermission::query()
-            ->whereIn('role_id', $mids)
+        $rps = PermissionModel::query()
+            ->where('model', $model)
+            ->whereIn('model_id', $mids)
             ->get();
 
         // get the permission ids
@@ -569,7 +549,7 @@ Trait HasPermission
         // assign the permission to the model
         foreach ($rps as $rp)
         {
-            $rid = $rp->role_id;
+            $rid = $rp->model_id;
             $pid = $rp->permission_id;
             $r = $id2role[$rid];
             $p = $id2permission[$pid];

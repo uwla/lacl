@@ -5,7 +5,7 @@ namespace Uwla\Lacl\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RolePermission extends Model
+class PermissionModel extends Model
 {
     use HasFactory;
 
@@ -14,5 +14,5 @@ class RolePermission extends Model
      *
      * @var string
     */
-    protected $table = 'roles_permissions';
+    protected $table = 'permissions_models';
 }

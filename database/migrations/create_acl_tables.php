@@ -30,33 +30,27 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('roles_permissions', function (Blueprint $table) {
-            $table->unsignedBigInteger('role_id');
+        Schema::create('permissions_models', function (Blueprint $table) {
+            $table->string('model');
+            $table->string('model_id');
             $table->unsignedBigInteger('permission_id');
-            $table->timestamps();
-            $table->foreign('role_id')
-                  ->references('id')
-                  ->on('roles')
-                  ->cascadeOnDelete();
             $table->foreign('permission_id')
                   ->references('id')
                   ->on('permissions')
                   ->cascadeOnDelete();
-            $table->primary(['role_id', 'permission_id']);
+            $table->primary(['model', 'model_id', 'permission_id']);
+            $table->timestamps();
         });
 
-        Schema::create('users_roles', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id');
+        Schema::create('roles_models', function (Blueprint $table) {
+            $table->string('model');
+            $table->string('model_id');
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')
                   ->references('id')
                   ->on('roles')
                   ->cascadeOnDelete();
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->cascadeOnDelete();
-            $table->primary(['role_id', 'user_id']);
+            $table->primary(['model', 'model_id', 'role_id']);
             $table->timestamps();
         });
     }
@@ -68,8 +62,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users_roles');
-        Schema::dropIfExists('roles_permissions');
+        Schema::dropIfExists('permissions_models');
+        Schema::dropIfExists('roles_models');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('permissions');
     }

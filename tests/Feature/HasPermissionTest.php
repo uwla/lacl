@@ -7,7 +7,7 @@ use Tests\Article;
 use Uwla\Lacl\Models\User;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\RolePermission;
+use Uwla\Lacl\Models\PermissionModel;
 use Uwla\Lacl\Database\Seeders\DatabaseSeeder;
 
 class HasPermissionTest extends TestCase
@@ -43,8 +43,9 @@ class HasPermissionTest extends TestCase
 
         // assert it currently does not have the permission
         $this->assertFalse(
-            RolePermission::where([
-                'role_id' => $role->id,
+            PermissionModel::where([
+                'model' => $role::class,
+                'model_id' => $role->id,
                 'permission_id' => $permission->id
             ])->exists()
         );
@@ -54,8 +55,9 @@ class HasPermissionTest extends TestCase
 
         // assert it now has the permission
         $this->assertTrue(
-            RolePermission::where([
-                'role_id' => $role->id,
+            PermissionModel::where([
+                'model' => $role::class,
+                'model_id' => $role->id,
                 'permission_id' => $permission->id
             ])->exists()
         );
@@ -74,9 +76,10 @@ class HasPermissionTest extends TestCase
         $ids = $permissions->pluck('id');
 
         // assert it does not have the permissions
-        $m =RolePermission::query()
+        $m = PermissionModel::query()
             ->whereIn('permission_id', $ids)
-            ->where('role_id', $role->id)
+            ->where('model_id', $role->id)
+            ->where('model', $role::class)
             ->count();
         $this->assertEquals(0, $m);
 
@@ -84,9 +87,10 @@ class HasPermissionTest extends TestCase
         $role->addPermissions($permissions);
 
         // assert it now has the permissions
-        $m =RolePermission::query()
+        $m = PermissionModel::query()
             ->whereIn('permission_id', $ids)
-            ->where('role_id', $role->id)
+            ->where('model_id', $role->id)
+            ->where('model', $role::class)
             ->count();
         $this->assertEquals($n, $m);
     }
@@ -168,7 +172,7 @@ class HasPermissionTest extends TestCase
      *
      * @return void
      */
-    public function test_has_permodel_permission_dynamically()
+    public function test_has_perModel_permission_dynamically()
     {
         // create models and permissions
         $role    = Role::factory()->createOne();
@@ -309,9 +313,10 @@ class HasPermissionTest extends TestCase
 
         $pid = $permissions->pluck('id');
         $rid = $roles->pluck('id');
-        $f = fn() => RolePermission::query()
+        $f = fn() => PermissionModel::query()
             ->whereIn('permission_id', $pid)
-            ->whereIn('role_id', $rid)
+            ->whereIn('model_id', $rid)
+            ->where('model', $roles->first()::class)
             ->count();
 
         Role::addPermissionsToMany($permissions, $roles);

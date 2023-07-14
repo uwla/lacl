@@ -13,6 +13,10 @@ class Permission extends Model
 {
     use HasFactory, PermissionableHasRole;
 
+    // TODO:
+    // add method to get roles associated with permission,
+    // as well as deleting it.
+
     /**
      * The attributes that are mass assignable.
      *
@@ -28,9 +32,9 @@ class Permission extends Model
     /**
       * Get permissions by their name
       *
-      * @param array<string>|string $names     The names of the permissions
-      * @param mixed                $modelType The class name of the model (optional)
-      * @param mixed                $models    The models or their ids (optional)
+      * @param array<string>|string $names  The names of the permissions
+      * @param mixed $modelType             The class name of the model (optional)
+      * @param mixed $models                The models or their ids (optional)
       * @return \Illuminate\Database\Eloquent\Collection
       */
     public static function getByName($names, $modelType=null, $models=null)
@@ -42,9 +46,7 @@ class Permission extends Model
 
         $n = count($names);
         if ($n == 0)
-        {
             throw new InvalidArgumentException('No permission provided');
-        }
 
         if ($modelType != null)
             $query = Permission::where('model', $modelType);
@@ -98,7 +100,7 @@ class Permission extends Model
       */
     public static function createOne($name)
     {
-        return self::create(['name' => $name]);
+        return static::create(['name' => $name]);
     }
 
     /**
@@ -118,10 +120,10 @@ class Permission extends Model
         $permissionsToCreate = [];
         foreach ($names as $name);
             $permissionsToCreate[] = ['name' => $name];
-        self::insert($permissionsToCreate); // bulk insertion
+        static::insert($permissionsToCreate); // bulk insertion
 
         // return them
-        return self::whereIn('names', $names)->get();
+        return static::whereIn('names', $names)->get();
     }
 
     /**

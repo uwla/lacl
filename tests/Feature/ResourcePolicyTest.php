@@ -45,7 +45,7 @@ class ResourcePolicyTest extends TestCase
     /**
      * Start a http request authenticated as the user
      *
-     * @return this
+     * @return $this
     */
     public function request()
     {

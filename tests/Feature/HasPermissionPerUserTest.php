@@ -4,9 +4,7 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use Uwla\Lacl\Models\User;
-use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\RolePermission;
 use Uwla\Lacl\Database\Seeders\DatabaseSeeder;
 
 class HasPermissionPerUserTest extends TestCase
@@ -16,8 +14,7 @@ class HasPermissionPerUserTest extends TestCase
      *
      * @var int
      */
-    private $n = 12;
-    private $m = 7;
+    private $n = 15;
 
     /**
      * Set up the test instance
@@ -40,29 +37,14 @@ class HasPermissionPerUserTest extends TestCase
         $user = User::factory()->createOne();
         $permission = Permission::factory()->createOne();
 
-        // assert the unique user role does not exist
-        // which implies the user has no permission
-        $roleName = $user::class . ':' . $user->id;
-        $this->assertFalse(
-            Role::where('name', $roleName)->exists()
-        );
+        // assert the user does not have the permission
+        $this->assertFalse($user->hasPermission($permission));
 
-        // add permission, which in turn creates unique user role
+        // add permission
         $user->addPermission($permission);
 
-        // assert the user role exists
-        $this->assertTrue(
-            Role::where('name', $roleName)->exists()
-        );
-
-        // assert it now has the permission
-        $role = Role::where('name', $roleName)->first();
-        $this->assertTrue(
-            RolePermission::where([
-                'role_id' => $role->id,
-                'permission_id' => $permission->id
-            ])->exists()
-        );
+        // assert the user has the permission
+        $this->assertTrue($user->hasPermission($permission));
     }
 
 
@@ -76,30 +58,15 @@ class HasPermissionPerUserTest extends TestCase
         $n = $this->n;
         $user = User::factory()->createOne();
         $permissions = Permission::factory($n)->create();
-        $ids = $permissions->pluck('id');
 
-        // assert the unique user role does not exist
-        // which implies the user has no permission
-        $roleName = $user::class . ':' . $user->id;
-        $this->assertFalse(
-            Role::where('name', $roleName)->exists()
-        );
+        // assert the user does not have the permissions
+        $this->assertFalse($user->hasAnyPermission($permissions));
 
         // add permission, which in turn creates unique user role
         $user->addPermissions($permissions);
 
-        // assert the user role exists
-        $this->assertTrue(
-            Role::where('name', $roleName)->exists()
-        );
-
-        // assert it now has the permissions
-        $role = Role::where('name', $roleName)->first();
-        $m =RolePermission::query()
-            ->whereIn('permission_id', $ids)
-            ->where('role_id', $role->id)
-            ->count();
-        $this->assertEquals($n, $m);
+        // assert the user does have the permissions
+        $this->assertTrue($user->hasPermissions($permissions));
     }
 
     /**
@@ -129,21 +96,6 @@ class HasPermissionPerUserTest extends TestCase
         $this->assertFalse($user->hasPermission($permission));
         $user->addPermission($permission);
         $this->assertTrue($user->hasPermission($permission));
-    }
-
-    /**
-     * Test having all given permissions
-     *
-     * @return void
-     */
-    public function test_has_permissions()
-    {
-        $n = $this->n;
-        $user = User::factory()->createOne();
-        $permissions = Permission::factory($n)->create();
-        $this->assertFalse($user->hasAnyPermission($permissions));
-        $user->addPermissions($permissions);
-        $this->assertTrue($user->hasPermissions($permissions));
     }
 
     /**
@@ -188,8 +140,8 @@ class HasPermissionPerUserTest extends TestCase
      */
     public function test_del_permissions()
     {
-        $n = $this->n;
-        $m = $this->m;
+        $m = $this->n;
+        $n = $m * 3;
 
         $user = User::factory()->createOne();
         $permissions = Permission::factory($n)->create();

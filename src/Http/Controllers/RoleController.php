@@ -37,7 +37,6 @@ class RoleController extends Controller
      */
     public function store(StoreRoleRequest $request)
     {
-        $request->validate();
         return Role::create($request->all());
     }
 
@@ -61,7 +60,6 @@ class RoleController extends Controller
      */
     public function update(UpdateRoleRequest $request, Role $role)
     {
-        $request->validate();
         $role->update($request->all());
         return $role;
     }

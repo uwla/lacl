@@ -36,7 +36,6 @@ class PermissionController extends Controller
      */
     public function store(StorePermissionRequest $request)
     {
-        $request->validate();
         return Permission::create($request->all());
     }
 
@@ -60,7 +59,6 @@ class PermissionController extends Controller
      */
     public function update(UpdatePermissionRequest $request, Permission $permission)
     {
-        $request->validate();
         $permission->update($request->all());
         return $permission;
     }
