@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use Tests\App\Models\Article;
+use Tests\App\Models\Permission;
+use Tests\App\Models\Role;
+use Tests\App\Models\User;
 use Tests\TestCase;
-use Tests\Article;
-use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\Role;
-use Uwla\Lacl\Models\User;
 
 class PermissionableTest extends TestCase
 {

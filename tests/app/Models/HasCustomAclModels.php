@@ -1,11 +1,8 @@
 <?php
 
-namespace Uwla\Lacl\Traits;
+namespace Tests\App\Models;
 
-use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\Role;
-
-Trait CustomAclModels
+Trait HasCustomAclModels
 {
     /**
       * Get the class of Role

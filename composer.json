@@ -6,8 +6,9 @@
     "homepage": "https://github.com/uwla/lacl",
     "autoload": {
         "psr-4": {
-            "Uwla\\Lacl\\": "src/",
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Tests\\App\\": "tests/app/",
+            "Uwla\\Lacl\\": "src/"
         }
     },
     "authors": [

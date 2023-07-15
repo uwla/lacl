@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use Uwla\Lacl\Database\Seeders\DatabaseSeeder;
-use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\Role;
-use Uwla\Lacl\Models\User;
+use Tests\App\Database\Seeders\DatabaseSeeder;
+use Tests\App\Models\Permission;
+use Tests\App\Models\Role;
+use Tests\App\Models\User;
 use Tests\TestCase;
 
 class ResourcePolicyTest extends TestCase
@@ -13,14 +13,14 @@ class ResourcePolicyTest extends TestCase
     /**
      * The user making the requests
      *
-     * @var \Uwla\Lacl\Models\User
+     * @var \Tests\App\Models\User
     */
     private $user;
 
     /**
      * The role of the user
      *
-     * @var \Uwla\Lacl\Models\User
+     * @var \Tests\App\Models\User
     */
     private $role;
 

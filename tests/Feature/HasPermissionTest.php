@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use Tests\App\Database\Seeders\DatabaseSeeder;
+use Tests\App\Models\Article;
+use Tests\App\Models\Permission;
+use Tests\App\Models\Role;
+use Tests\App\Models\User;
 use Tests\TestCase;
-use Tests\Article;
-use Uwla\Lacl\Models\User;
-use Uwla\Lacl\Models\Role;
-use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\PermissionModel;
-use Uwla\Lacl\Database\Seeders\DatabaseSeeder;
 
 class HasPermissionTest extends TestCase
 {

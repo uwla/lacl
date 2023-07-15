@@ -21,7 +21,7 @@ abstract class TestCase extends BaseTestCase
     {
         return [
             'Laravel\Sanctum\SanctumServiceProvider', // authentication
-            'Uwla\Lacl\Providers\RouteServiceProvider', // authorization
+            'Tests\App\Providers\RouteServiceProvider', // authorization
         ];
     }
 

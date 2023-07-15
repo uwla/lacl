@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use Uwla\Lacl\Models\Permission;
+use Tests\App\Models\Permission;
 
 class PermissionTest extends TestCase
 {

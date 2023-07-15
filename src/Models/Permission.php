@@ -2,32 +2,17 @@
 
 namespace Uwla\Lacl\Models;
 
-use Uwla\Lacl\Traits\PermissionableHasRole;
-use Uwla\Lacl\Database\Factories\PermissionFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
+use Uwla\Lacl\Traits\PermissionableHasRole;
 
 class Permission extends Model
 {
     use HasFactory, PermissionableHasRole;
 
-    // TODO:
-    // add method to get roles associated with permission,
-    // as well as deleting it.
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    public $fillable = [
-        'name',
-        'model',
-        'model_id',
-        'description'
-    ];
+    // TODO: add method to get & delete roles associated with permission instance
 
     /**
       * Get permissions by their name
@@ -124,16 +109,5 @@ class Permission extends Model
 
         // return them
         return static::whereIn('names', $names)->get();
-    }
-
-    /**
-     * Create a new factory instance for the model.
-     * This is used for testing. End-users are encouraged to change it.
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
-    protected static function newFactory()
-    {
-        return PermissionFactory::new();
     }
 }

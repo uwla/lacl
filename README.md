@@ -28,7 +28,7 @@ particular. This is better than adding a 'user_id' column in the articles table.
 ## Demo
 
 A demo app is available on github at
-[uwla/lacl-demo](https://github.com/uwla/lacl-demo) to illustrate usage.
+[uwla/lacl-demo](https://github.com/uwla/lacl-demo1) to illustrate usage.
 
 ## FAQ
 
@@ -555,8 +555,7 @@ There is a shorter, cleaner way (aka, syntax sugar) to deal with permissions:
 // create a permission to send emails
 Permission::create(['name' => 'sendEmails']);
 
-// you can do the following,
-// a shorter way to add, check, and del a single permission
+//  shorter way to add, check, and del single permission:
 $user->addPermissionToSendEmails();
 $user->hasPermissionToSendEmails(); // true
 $user->delPermissionToSendEmails();
@@ -672,16 +671,16 @@ Article::grantDeleteAnyPermission($user);
 In the second example above, the user would be able to delete all articles
 since he was granted permission to `deleteAny` any article model.
 
-Everything that was explained about per-model permissions applies to
-generic model permissions: creation, fetching, deletion, granting, revoking,
-dynamic names, etc. There are only three differences:
+Everything that was explained about per-model  permissions  applies  to  generic
+model permissions: creation, fetching,  deletion,  granting,  revoking,  dynamic
+names, etc. There are only three differences:
 
 1. The permissions must be created, fetched, and deleted using static methods.
 2. The permissions grant access to all models, not just one.
-3. The permission names end with the `Any`, such as `updateAny`, except for the
+3. The permission names end with the `Any`, such as `updateAny`, except for  the
    `create` permission.
 
-Actually, there is also more two exceptions. First, to delete all generic model
+Actually, there is also more two exceptions. First, to delete all generic  model
 permissions:
 
 ```php

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use Tests\App\Models\Role;
+use Tests\App\Models\User;
 use Tests\TestCase;
-use Uwla\Lacl\Models\User;
-use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RoleModel;
 
 class HasRoleTest extends TestCase
