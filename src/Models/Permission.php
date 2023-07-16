@@ -24,7 +24,7 @@ class Permission extends Model
         $ids = PermissionModel::where([
             'permission_id' => $this->id,
             'model' => $model_class,
-        ])->pluck('id');
+        ])->pluck('model_id');
         $models = $model_class::whereIn($id_column, $ids)->get();
         return $models;
     }
@@ -69,9 +69,9 @@ class Permission extends Model
             throw new InvalidArgumentException('No permission provided');
 
         if ($modelType != null)
-            $query = Permission::where('model', $modelType);
+            $query = static::where('model', $modelType);
         else
-            $query = Permission::query();
+            $query = static::query();
 
         if ($models == null) {
             // we are dealing with permissions for a resource group

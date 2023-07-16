@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use Tests\App\Models\Role;
+use Tests\App\Models\User;
 use Tests\TestCase;
 use Tests\App\Models\Permission;
 
@@ -48,6 +50,23 @@ class PermissionTest extends TestCase
         $created = Permission::createMany($names);
         $found = Permission::whereIn('name', $names)->get();
         $this->assertTrue($created->diff($found)->isEmpty());
+    }
+
+    public function test_get_models_associated_with_permission()
+    {
+        $permission = Permission::factory()->createOne();
+
+        // test with roles
+        $roles = Role::factory(5)->create();
+        Role::addPermissionToMany($permission, $roles);
+        $models = $permission->getRoles();
+        $this->assertTrue($models->diff($roles)->isEmpty());
+
+        // test with generic model
+        $users = User::factory(30)->create();
+        User::addPermissionToMany($permission, $users);
+        $models = $permission->getModels(User::class, 'id');
+        $this->assertTrue($models->diff($users)->isEmpty());
     }
 }
 
