@@ -6,13 +6,48 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
-use Uwla\Lacl\Traits\PermissionableHasRole;
+use Uwla\Lacl\Traits\Permissionable;
 
 class Permission extends Model
 {
-    use HasFactory, PermissionableHasRole;
+    use HasFactory, Permissionable;
 
-    // TODO: add method to get & delete roles associated with permission instance
+    /**
+      * Get the instances of the given model which have this permission
+      *
+      * @param string $model_class
+      * @param string $id_column
+      * @return \Illuminate\Database\Eloquent\Collection
+      */
+    public function getModels($model_class, $id_column)
+    {
+        $ids = PermissionModel::where([
+            'permission_id' => $this->id,
+            'model' => $model_class,
+        ])->pluck('id');
+        $models = $model_class::whereIn($id_column, $ids)->get();
+        return $models;
+    }
+
+    /**
+      * Get the roles that have this permission
+      *
+      * @return \Illuminate\Database\Eloquent\Collection
+      */
+    public function getRoles()
+    {
+        return $this->getModels($this::Role(), 'id');
+    }
+
+    /**
+      * Get the name of the roles that have this permission
+      *
+      * @return \Illuminate\Database\Eloquent\Collection
+      */
+    public function getRoleNames()
+    {
+        return $this->getRoles()->pluck('name');
+    }
 
     /**
       * Get permissions by their name
