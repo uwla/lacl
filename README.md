@@ -87,9 +87,10 @@ Add Traits to the application's user class:
 <?php
 
 use Uwla\Lacl\Traits\HasRole;
+use Uwla\Lacl\Contracts\HasRoleContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasRoleContract
 {
     use HasRole;
 
@@ -194,9 +195,24 @@ $users[0]->users
 ### HasPermission
 
 Here, we will assign permissions to a  role,  but  they  can  also  be  assigned
-directly to a user.
+directly to a user or any model by using the traits and contracts as follow:
 
-Add a permission or multiple permissions to role (the permissions  must  already
+```php
+<?php
+
+use Uwla\Lacl\Traits\HasPermission;
+use Uwla\Lacl\Contracts\HasPermissionContract;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable implements HasPermissionContract
+{
+    use HasPermission;
+
+    //
+}
+```
+
+Add a permission or multiple permissions to a role (the permissions must already
 exist):
 
 ```php
@@ -247,7 +263,7 @@ $role->delPermission(['user.view', 'user.del']);  // using string names
 $role->delAllPermissions();
 ```
 
-Has role (returns `bool`):
+Has permission (returns `bool`):
 
 ```php
 <?php
@@ -328,8 +344,47 @@ $user->add($permission);
 $user->hasPermission('article.edit', Article::class, $article->id); // true
 ```
 
-You can perform any operations on `Permission` that are  supported  by  Eloquent
-models, such as deleting, updating, fetching, searching, etc.
+To get a permission by name:
+
+```php
+<?php
+// standard Eloquent way
+$permission = Permission::where('name', 'view documents')->first();
+
+// shorter way
+$permission = Permission::getByName('view documents');
+
+// or many at once
+$permissions = Permission::getByName([
+    'view documents', 'edit documents', 'upload files'
+]);
+```
+
+To get all roles associated with a permission:
+
+```php
+<?php
+$roles = $permission->getRoles();
+
+// or, get the role names
+$roleNames = $permission->getRoleNames();
+```
+
+To get all model of a custom model instance that have a permission:
+
+```php
+<?php
+// the first parameter is the class of the model
+// the second parameter is the name of the id column of the model
+$users = $permission->getModels(User::class, 'id');
+
+// it can be used on users, roles, or any model such as a Team
+// a team could have permissions associated with the team members
+$teams = $permissions->getModels(Team::class, 'id');
+```
+
+It is worth noting that you can perform any operations on `Permission` that  are
+supported by Eloquent models, such as deleting, updating, fetching, etc.
 
 ### Per-model permission
 
