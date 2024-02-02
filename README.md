@@ -3,10 +3,10 @@
 Implementation of Access Control List System in Laravel.
 
 The system  handles  authorizations  of  certain  actions  based  on  roles  and
-permissions. Permissions are assigned  to  roles,  and  roles  are  assigned  to
-users. If  a  user's  role  has  the  matching  permission,  then  the  user  is
-authorized to perform  the  given  action;  else  the  user  is  forbidden.  The
-permissions can be arbitrarily defined by the application developers.
+permissions. Permissions are assigned to roles, and roles are assigned to users.
+If a user's role has the matching permission, then the  user  is  authorized  to
+perform the given action; else the user is forbidden.  The  permissions  can  be
+arbitrarily defined by the application developers.
 
 The system can handle resource-based  permissions,  that  is:  a  permission  is
 associated with a resource/model/entity in the database. Thus,  it  is  possible
@@ -28,7 +28,7 @@ particular. This is better than adding a 'user_id' column in the articles table.
 ## Demo
 
 A demo app is available on github at
-[uwla/lacl-demo](https://github.com/uwla/lacl-demo1) to illustrate usage.
+[uwla/lacl-demo](https://github.com/uwla/lacl-demo) to illustrate usage.
 
 ## FAQ
 
@@ -882,3 +882,7 @@ pull request.
 ## HELP
 
 If you any need help, feel free to open an issue on this package's github repo.
+
+## LICENSE
+
+MIT.
