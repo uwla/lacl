@@ -12,7 +12,7 @@ The system can handle resource-based  permissions,  that  is:  a  permission  is
 associated with a resource/model/entity in the database. Thus,  it  is  possible
 to, for example, define authorization for a user to edit all  articles  or  just
 the articles he has created  by  creating  permissions  for  those  articles  in
-particular. This is better than adding a 'user_id' column in the articles table.
+particular. This is better than adding a 'user_id' column to the articles table.
 
 ## Features
 
@@ -28,7 +28,7 @@ particular. This is better than adding a 'user_id' column in the articles table.
 ## Demo
 
 A demo app is available on github at
-[uwla/lacl-demo](https://github.com/uwla/lacl-demo) to illustrate usage.
+[uwla/lacl-demo](https://github.com/uwla/lacl_demo) to illustrate usage.
 
 ## FAQ
 
@@ -39,10 +39,10 @@ This   package   provides   some   functionality   that   spatie's   and   other
 permission-management packages do not provide, such as per-model permission  and
 Resource  Policy  automation.  At  the  same  time,   their   packages   provide
 functionality that this package does not provide, such as searching  permissions
-based on wildcards or support  for  team  permissions.  Please,  read  the  full
-README to understand better what this package does and what it does not. If  you
-should use this package or not will  depend  on  the  specific  needs  for  your
-application; it is up to you as developer to figure it out.
+based on wildcards or support for team permissions. Please, read the full README
+to understand better what this package does and what it does not. If you  should
+use this package or not will depend on the specific needs for your  application;
+it is up to you as developer to figure it out.
 
 **Why this package?**
 
@@ -179,7 +179,7 @@ Get multiple users along with their roles:
 $users = User::withRoles($users);
 
 // access the roles via the 'roles' property
-$users[0]->users
+$roles_of_first_user = $users[0]->roles
 ```
 
 Get multiple users along with the names of their roles:
@@ -189,7 +189,7 @@ Get multiple users along with the names of their roles:
 $users = User::withRoleNames($users);
 
 // access the role names via the 'roles' property
-$users[0]->users
+$role_names_of_first_user = $users[0]->roles;
 ```
 
 ### HasPermission
@@ -294,7 +294,7 @@ Get multiple roles along with their permissions:
 $roles = Role::withPermissions($roles);
 
 // access the permissions via the 'permission' property
-$roles[0]->permissions
+$permissions_of_first_role = $roles[0]->permissions
 ```
 
 Get multiple roles along with the name of their permissions:
@@ -304,7 +304,7 @@ Get multiple roles along with the name of their permissions:
 $roles = Role::withPermissionNames($roles);
 
 // access the permission names via the 'permission' property
-$roles[0]->permissions
+$permission_names_of_first_role = $roles[0]->permissions
 ```
 
 ### Permissions
@@ -344,7 +344,7 @@ $user->add($permission);
 $user->hasPermission('article.edit', Article::class, $article->id); // true
 ```
 
-To get a permission by name:
+Get a permission by name:
 
 ```php
 <?php
@@ -360,7 +360,7 @@ $permissions = Permission::getByName([
 ]);
 ```
 
-To get all roles associated with a permission:
+Get all roles associated with a permission:
 
 ```php
 <?php
@@ -370,16 +370,19 @@ $roles = $permission->getRoles();
 $roleNames = $permission->getRoleNames();
 ```
 
-To get all model of a custom model instance that have a permission:
+Get all model instances for the given model class which have the specific permission:
 
 ```php
 <?php
-// the first parameter is the class of the model
-// the second parameter is the name of the id column of the model
+$permission = Permission::getByName('vip content');
+
+// we get all users with the 'VIP' permission.
+// the first parameter is the class of the model.
+// the second parameter is the name of the id column of the model.
 $users = $permission->getModels(User::class, 'id');
 
-// it can be used on users, roles, or any model such as a Team
-// a team could have permissions associated with the team members
+// it can be used on users, roles, or any model such as a Team.
+// a team could have permissions associated with the team members.
 $teams = $permissions->getModels(Team::class, 'id');
 ```
 
@@ -410,9 +413,9 @@ class Article extends Model
 
 **OBS**: If your model needs to use both `Permissionable` and `HasRole`  traits,
 then you will be better off using the `PermissionableHasRole`  trait,  which  is
-basically a mix of the both that solves a method conflict between the two.  That
-could be the case for the `User` class, which could have roles and at  the  same
-time be a permissionable model.
+basically a mix of the both that solves conflict declarations between them. That
+could be the case for the `User` class, which could have roles and, at the  same
+time, be a permissionable model.
 
 Here is a summary of the auxiliary methods provided by `Permissionable`:
 
@@ -440,20 +443,20 @@ Here is a summary of the auxiliary methods provided by `Permissionable`:
 | `revokeCrudPermissions`    | Revoke the permissions above from the given user/role.                 |
 
 As you can see, the per-model permissions are 'view',  'update',  and  'delete'.
-This is because the most generic actions a user can perform on  a  single  model
-is to view it, update it, or delete  it.  It  also  facilitates  automation  and
+This is because the most generic actions a user can perform on a single model is
+to view it, update  it,  or  delete  it.  It  also  facilitates  automation  and
 integration with Laravel Policies.
 
-The create-permission  helpers  will  either  fetch  from  or  insert  into  the
-database the associated permission, depending on whether it  already  exists  or
-not. The get-permissions helpers assume the permission exists in  DB,  and  then
-try to fetch. The delete-permission helpers will try to delete  the  permissions
-in DB, but does not assume they already  exist.  The  grant  permission  helpers
-will assign the permissions to  the  user  or  to  the  given  user/role,  which
-assumes the permissions already exist (if they don't exist,  an  Error  will  be
-thrown). The revoke-permission helpers try to revoke  the  permission  from  the
-user/role; it  assumes  the  permissions  exist  but  it  does  not  assume  the
-user/role has access to those permissions.
+The create-permission helpers will either fetch from or insert into the database
+the associated permission, depending on whether it already exists  or  not.  The
+get-permissions helpers assume the permission exists in  DB,  and  then  try  to
+fetch. The delete-permission helpers will try to delete the permissions  in  DB,
+but does not assume they already exist. The grant permission helpers will assign
+the permissions to the user  or  to  the  given  user/role,  which  assumes  the
+permissions already exist (if they don't exist, an Error will  be  thrown).  The
+revoke-permission helpers try to revoke the permission from  the  user/role;  it
+assumes the permissions exist but it does not assume the user/role has access to
+those permissions.
 
 Create crud permission (or fetch them, if already exist) for the article:
 
@@ -560,14 +563,14 @@ if ($user->hasPermission($article->getDeletePermission())
 
 Also, it is important to remember that the user permissions are all  permissions
 assigned specifically to him plus the permissions assigned to any role  he  has.
-Therefore, it the user does not  have  a  direct  permission  to  the  view  the
-article, but one of its role has, the user will also have that permission.
+Therefore, if the user does not have a direct permission to  view  the  article,
+but one of his roles has the permission, then  the  user  will  also  have  that
+permission.
 
 #### Per-model permission deletion
 
-To delete all per-model permissions associated with a model,
-you can use the `deleteThisModelPermissions` method that comes
-with the `Permissionable` trait.
+To delete all per-model permissions associated with a model,  you  can  use  the
+`deleteThisModelPermissions` method that comes with the `Permissionable` trait.
 
 ```php
 <?php
@@ -598,8 +601,8 @@ protected static function boot() {
 
 Just keep in mind that  mass  deletions  do  not  trigger  the  `static:deleted`
 because when you use Eloquent Models for mass deletion it  will  not  fetch  the
-models first and later deleted them  one  by  one;  it  will,  instead,  send  a
-deletion query to the database and that is.
+models first and later deleted them  one  by  one.  It  will,  instead,  send  a
+deletion query to the database, so it does instantiate any model.
 
 #### Per-model permission dynamically
 
@@ -743,7 +746,7 @@ permissions:
 Article::deleteGenericModelPermissions();
 ```
 
-To delete all model permissions, both generic model  permissions  and  per-model
+Delete all model permissions, both generic model  permissions  and  per-model
 permissions (be careful with this one, since it will delete all of them):
 
 ```php
