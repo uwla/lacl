@@ -877,10 +877,10 @@ protected static function Role()
 }
 ```
 
-## Contributions
+## CONTRIBUTIONS
 
 Contributions are welcome. Fork the repository, make your changes, then  make  a
-pull request.
+pull request. Check [development](DEVELOPMENT.md) for all development-related instructions.
 
 ## HELP
 
