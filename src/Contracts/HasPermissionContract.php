@@ -6,5 +6,3 @@ interface HasPermissionContract
 {
     //
 }
-
-?>

@@ -12,5 +12,3 @@ interface ResourcePolicy
     */
     public function getResourceModel();
 }
-
-?>

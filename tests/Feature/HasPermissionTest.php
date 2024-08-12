@@ -345,5 +345,3 @@ class HasPermissionTest extends TestCase
             $this->assertEquals($r->permissions, $r->getPermissionNames());
     }
 }
-
-?>

@@ -117,5 +117,3 @@ Trait ResourcePolicy
         return $this->userHasPermission($user, ['forceDelete', 'forceDeleteAny'], [$model->id, null]);
     }
 }
-
-?>

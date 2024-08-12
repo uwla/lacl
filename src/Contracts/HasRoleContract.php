@@ -6,6 +6,3 @@ interface HasRoleContract
 {
     //
 }
-
-?>
-

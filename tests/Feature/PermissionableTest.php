@@ -221,5 +221,3 @@ class PermissionableTest extends TestCase
         $this->assertTrue($role->hasPermissions($permissions));
     }
 }
-
-?>

@@ -69,4 +69,3 @@ class PermissionTest extends TestCase
         $this->assertTrue($models->diff($users)->isEmpty());
     }
 }
-

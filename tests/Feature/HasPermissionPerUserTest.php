@@ -170,4 +170,3 @@ class HasPermissionPerUserTest extends TestCase
         $this->assertEquals($user->countPermissions(), 0);
     }
 }
-
