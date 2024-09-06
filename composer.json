@@ -18,7 +18,8 @@
     ],
     "require": {
         "illuminate/database": "^10.0",
-        "illuminate/auth": "^10.0"
+        "illuminate/auth": "^10.0",
+        "nunomaduro/phpinsights": "^2.11"
     },
     "require-dev": {
         "laravel/sanctum": "^3.2",
@@ -26,13 +27,19 @@
         "phpunit/phpunit": "^10.0"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+        "insights": "vendor/bin/phpinsights"
     },
     "extra": {
         "laravel": {
             "providers": [
                 "Uwla\\Lacl\\AclServiceProvider"
             ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }

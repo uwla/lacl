@@ -6,3 +6,4 @@ tags
 .vscode
 .vim
 *.bak
+.php-cs-fixer.cache
