@@ -9,7 +9,7 @@ Trait HasCustomAclModels
       *
       * @return string
       */
-    protected static function Role()
+    protected static function Role(): string
     {
         return Role::class;
     }
@@ -19,7 +19,7 @@ Trait HasCustomAclModels
       *
       * @return string
       */
-    protected static function Permission()
+    protected static function Permission(): string
     {
         return Permission::class;
     }

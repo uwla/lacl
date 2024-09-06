@@ -13,10 +13,10 @@ Trait ResourcePolicy
      *
      * @param  User          $user          the authenticated user
      * @param  array<string> $permissions   the name of the permissions
-     * @param  array<int>    $model         the id of the models
+     * @param  array<int>    $models        the id of the models
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function userHasPermission(User $user, $permissions, $models)
+    public function userHasPermission(User $user, $permissions, $models): bool
     {
         // the model is the class name and the namespace
         // for example: User
@@ -41,7 +41,7 @@ Trait ResourcePolicy
      * @param  User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool
     {
         return $this->userHasPermission($user, ['viewAny'], [null]);
     }
@@ -53,7 +53,7 @@ Trait ResourcePolicy
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Model $model)
+    public function view(User $user, Model $model): bool
     {
         return $this->userHasPermission($user, ['view', 'viewAny'], [$model->id, null]);
     }
@@ -64,7 +64,7 @@ Trait ResourcePolicy
      * @param  User  $user
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function create(User $user)
+    public function create(User $user): bool
     {
         return $this->userHasPermission($user, ['create'], [null]);
     }
@@ -76,7 +76,7 @@ Trait ResourcePolicy
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, Model $model)
+    public function update(User $user, Model $model): bool
     {
         return $this->userHasPermission($user, ['update', 'updateAny'], [$model->id, null]);
     }
@@ -88,7 +88,7 @@ Trait ResourcePolicy
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Model $model)
+    public function delete(User $user, Model $model): bool
     {
         return $this->userHasPermission($user, ['delete', 'deleteAny'], [$model->id, null]);
     }
@@ -100,7 +100,7 @@ Trait ResourcePolicy
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, Model $model)
+    public function restore(User $user, Model $model): bool
     {
         return $this->userHasPermission($user, ['restore', 'restoreAny'], [$model->id, null]);
     }
@@ -112,7 +112,7 @@ Trait ResourcePolicy
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, Model $model)
+    public function forceDelete(User $user, Model $model): bool
     {
         return $this->userHasPermission($user, ['forceDelete', 'forceDeleteAny'], [$model->id, null]);
     }

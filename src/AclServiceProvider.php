@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 class AclServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
         // publishes migrations
         $src = __DIR__ . '/' . '../database/migrations/create_acl_tables.php';

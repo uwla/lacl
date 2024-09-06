@@ -28,7 +28,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_add_role()
+    public function test_add_role(): void
     {
         $user = User::factory()->createOne();
         $role = Role::factory()->createOne();
@@ -48,7 +48,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_add_roles()
+    public function test_add_roles(): void
     {
         $user = User::factory()->createOne();
         $roles = Role::factory($this->m)->create();
@@ -68,7 +68,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_get_roles()
+    public function test_get_roles(): void
     {
         $user = User::factory()->createOne();
         $roles = Role::factory($this->m)->create();
@@ -83,7 +83,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_has_role()
+    public function test_has_role(): void
     {
         $user = User::factory()->createOne();
         $role = Role::factory()->createOne();
@@ -99,7 +99,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_has_roles()
+    public function test_has_roles(): void
     {
         $user = User::factory()->createOne();
         $roles = Role::factory($this->m)->create();
@@ -115,7 +115,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_has_any_roles()
+    public function test_has_any_roles(): void
     {
         $user = User::factory()->createOne();
         $roles = Role::factory($this->m)->create();
@@ -131,7 +131,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_set_role()
+    public function test_set_role(): void
     {
         $user = User::factory()->createOne();
         $roles = Role::factory($this->m)->create();
@@ -149,7 +149,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_set_roles()
+    public function test_set_roles(): void
     {
         $user = User::factory()->createOne();
         $oldRoles = Role::factory($this->m)->create();
@@ -170,7 +170,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_del_roles()
+    public function test_del_roles(): void
     {
         $m = $this->m;
         $n = $m * 5;
@@ -188,7 +188,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_del_all_roles()
+    public function test_del_all_roles(): void
     {
         $m = $this->m;
         $user = User::factory()->createOne();
@@ -205,7 +205,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_mass_role_attribution()
+    public function test_mass_role_attribution(): void
     {
         $n = $this->n;
         $m = $this->m;
@@ -233,7 +233,7 @@ class HasRoleTest extends TestCase
      *
      * @return void
      */
-    public function test_get_users_with_their_roles()
+    public function test_get_users_with_their_roles(): void
     {
         $n = $this->n;
         $m = $this->m;

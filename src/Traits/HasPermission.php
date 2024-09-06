@@ -18,26 +18,26 @@ Trait HasPermission
 {
     use Identifiable, CustomAclModels;
 
-    /*
+    /**
      * Get the id of this model
      *
-     * @return mixed
+     * @return string|int
      */
     protected function getSelfRoleId()
     {
         return $this->id;
     }
 
-    /*
+    /**
      * Get an eloquent collection of Permission.
      * The parameters permissions & ids can be an array of strings or eloquent models.
      *
-     * @param mixed  $permissions   The permissions to be normalized
-     * @param string $resource      The class name of the resource model
-     * @param mixed  $ids           The ids of the resources
+     * @param array|Collection  $permissions   The permissions to be normalized
+     * @param string            $resource      The class name of the resource model
+     * @param array             $ids           The ids of the resources
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    private static function normalizePermissions($permissions, $resource = null, $ids = null)
+    private static function normalizePermissions($permissions, $resource = null, $ids = null): Collection
     {
         $normalized = $permissions;
         if (is_array($permissions))
@@ -51,13 +51,13 @@ Trait HasPermission
         return $normalized;
     }
 
-    /*
+    /**
      * Get an eloquent collection of the given models.
      *
-     * @param mixed $models
+     * @param  array|Collection $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    private static function normalizeModels($models)
+    private static function normalizeModels($models): Collection
     {
         if (is_array($models))
             $models = collect($models);
@@ -68,53 +68,53 @@ Trait HasPermission
         return $models;
     }
 
-    /*
+    /**
      * Get the ids of the given permissions
      *
-     * @param mixed  $permissions   The permissions to be normalized
-     * @param string $resource      The class name of the resource model
-     * @param mixed  $ids           The ids of the resources
+     * @param array|Collection  $permissions   The permissions to be normalized
+     * @param string            $resource      The class name of the resource model
+     * @param array             $ids           The ids of the resources
      * @return \Illuminate\Support\Collection
      */
-    private function getPermissionIds($permissions, $resource = null, $ids = null)
+    private function getPermissionIds($permissions, $resource = null, $ids = null): Collection
     {
         return $this::normalizePermissions($permissions, $resource, $ids)->pluck('id');
     }
 
-    /*
+    /**
      * Guess the name of the permission called upon dynamic method.
      *
      * @param  string $remainingMethodName The method name after removing the prefix
      * @return string
      */
-    protected function guessPermissionName($remainingMethodName)
+    protected function guessPermissionName($remainingMethodName): string
     {
         // by the default, just lower case the first letter of it
         return Str::lcfirst($remainingMethodName);
     }
 
-    /*
-     * add single permission
+    /**
+     * Add single permission
      *
-     * @param mixed $permissions    The permission or their names
-     * @param mixed $resource       The model class
-     * @param mixed $id             The model id
+     * @param string|Permission $permissions    The permission or their names
+     * @param string            $resource       The model class
+     * @param string|int        $id             The model id
      * @return void
      */
-    public function addPermission($permission, $resource = null, $id = null)
+    public function addPermission($permission, $resource = null, $id = null): void
     {
         $this->addPermissions([$permission], $resource, [$id]);
     }
 
-    /*
-     * add many permissions
+    /**
+     * Add many permissions
      *
-     * @param mixed $permissions    The permission or their names
-     * @param mixed $resource       The model class
-     * @param mixed $ids            The model ids
+     * @param array|Collection  $permissions    The permission or their names
+     * @param string            $resource       The model class
+     * @param string|int        $ids            The model ids
      * @return void
      */
-    public function addPermissions($permissions, $resource = null, $ids = null)
+    public function addPermissions($permissions, $resource = null, $ids = null): void
     {
         $permissions = static::normalizePermissions($permissions, $resource, $ids);
         $toAdd = [];
@@ -130,28 +130,28 @@ Trait HasPermission
         PermissionModel::insert($toAdd);
     }
 
-    /*
+    /**
      * revoke a permission associated with this role
      *
-     * @param mixed $permissions    The permission or their names
-     * @param mixed $resource       The model class
-     * @param mixed $id             The model id
+     * @param string|Permission $permissioni    The permission or its names
+     * @param string            $resource       The model class
+     * @param string|int        $id             The model id
      * @return void
      */
-    public function delPermission($permission, $resource = null, $id = null)
+    public function delPermission($permission, $resource = null, $id = null): void
     {
         $this->delPermissions([$permission], $resource, [$id]);
     }
 
-    /*
+    /**
      * revoke the given permissions associated with this role
      *
-     * @param mixed $permissions    The permission or their names
-     * @param mixed $resource       The model class
-     * @param mixed $ids            The model ids
+     * @param array|Collection  $permissions    The permission or their names
+     * @param string            $resource       The model class
+     * @param array             $ids            The model ids
      * @return void
      */
-    public function delPermissions($permissions, $resource = null, $ids = null)
+    public function delPermissions($permissions, $resource = null, $ids = null): void
     {
         // get ids of the permissions
         $ids = $this->getPermissionIds($permissions, $resource, $ids);
@@ -166,7 +166,7 @@ Trait HasPermission
             ->delete();
     }
 
-    /*
+    /**
      * revoke all permissions associated with this role
      *
      * @param mixed $permissions
@@ -180,7 +180,7 @@ Trait HasPermission
         ])->delete();
     }
 
-    /*
+    /**
      * set the permissions associated with this role
      *
      * @param mixed $permissions
@@ -192,7 +192,7 @@ Trait HasPermission
         $this->addPermissions($permissions);
     }
 
-    /*
+    /**
      * get the permission ids associated with this object
      *
      * @return \Illuminate\Support\Collection
@@ -224,7 +224,7 @@ Trait HasPermission
         return $query->pluck('permission_id');
     }
 
-    /*
+    /**
      * get all permissions associated with this object
      *
      * @return \Illuminate\Database\Eloquent\Collection
@@ -235,7 +235,7 @@ Trait HasPermission
         return static::Permission()::whereIn('id', $ids)->get();
     }
 
-    /*
+    /**
      * Get the models this role or user has permission to access.
      *
      * @return \Illuminate\Database\Eloquent\Collection
@@ -271,7 +271,7 @@ Trait HasPermission
         return $models;
     }
 
-    /*
+    /**
      * Get the permissions associated with this model only, not with its roles.
      *
      * @return \Illuminate\Database\Eloquent\Collection<\Uwla\Lacl\Models\Permission>
@@ -285,7 +285,7 @@ Trait HasPermission
         return static::Permission()::whereIn('id', $ids)->get();
     }
 
-    /*
+    /**
      * get the name of the permissions associated with this object
      *
      * @return \Illuminate\Support\Collection
@@ -295,7 +295,7 @@ Trait HasPermission
         return $this->getPermissions()->pluck('name');
     }
 
-    /*
+    /**
      * check whether this object has the given permission
      *
      * @param mixed  $permission
@@ -308,7 +308,7 @@ Trait HasPermission
         return $this->hasPermissions([$permission], $resource, [$id]);
     }
 
-    /*
+    /**
      * Executed when the object is called upon an undefined method.
      * We overwrote it to provide better interface to manage permissions.
      *
@@ -341,7 +341,7 @@ Trait HasPermission
         return parent::__call($name, $arguments);
     }
 
-    /*
+    /**
      * check whether this object has the given permissions
      *
      * @param mixed  $permission
@@ -356,29 +356,29 @@ Trait HasPermission
         return $m == $n;
     }
 
-    /*
+    /**
      * check whether this object has any of the given permissions
      *
      * @param mixed  $permission
      * @param string $resource
-     * @param mixed  $ids
+     * @param array  $ids
      * @return bool
      */
-    public function hasAnyPermission($permissions, $resource = null, $ids = null)
+    public function hasAnyPermission($permissions, $resource = null, $ids = null): bool
     {
         $m = $this->hasHowManyPermissions($permissions, $resource, $ids);
         return $m > 0;
     }
 
-    /*
+    /**
      * get how many of the given permissions this object has
      *
-     * @param mixed  $permission
-     * @param string $resource
-     * @param mixed  $ids
+     * @param array|Collection  $permissions
+     * @param string            $resource
+     * @param array             $ids
      * @return int
      */
-    private function hasHowManyPermissions($permissions, $resource, $ids)
+    private function hasHowManyPermissions($permissions, $resource, $ids): int
     {
         // the ids of the permissions
         $permission_ids = $this->getPermissionIds($permissions, $resource, $ids)->toArray();
@@ -390,36 +390,36 @@ Trait HasPermission
         return count(array_intersect($permission_ids, $this_permission_ids));
     }
 
-    /*
+    /**
      * get how many permissions this object has
      *
      * @return int
      */
-    public function countPermissions()
+    public function countPermissions(): int
     {
         return $this->getThisPermissionsIds()->count();
     }
 
-    /*
-     * add single permission to many models
+    /**
+     * Add single permission to many models
      *
-     * @param mixed $permission
+     * @param string|Permission $permission
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function addPermissionToMany($permission, $models)
+    public static function addPermissionToMany($permission, $models): void
     {
         static::addPermissionsToMany([$permission], $models);
     }
 
-    /*
-     * add many permissions to many models
+    /**
+     * Add many permissions to many models
      *
-     * @param mixed $permission
+     * @param array|Collection $permissions
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function addPermissionsToMany($permissions, $models)
+    public static function addPermissionsToMany($permissions, $models): void
     {
         $permissions = static::normalizePermissions($permissions);
         $models = static::normalizeModels($models);
@@ -445,26 +445,26 @@ Trait HasPermission
         PermissionModel::insert($toCreate);
     }
 
-    /*
-     * delete a single permission from many models
+    /**
+     * Delete a single permission from many models
      *
-     * @param mixed $permission
+     * @param string|Permission $permission
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function delPermissionFromMany($permission, $models)
+    public static function delPermissionFromMany($permission, $models): void
     {
         static::delPermissionsFromMany([$permission], $models);
     }
 
-    /*
-     * delete many permissions from many models
+    /**
+     * Delete many permissions from many models
      *
-     * @param mixed $permission
-     * @param mixed $models
+     * @param array|Collection $permissions
+     * @param array|Collection $models
      * @return void
      */
-    public static function delPermissionsFromMany($permissions, $models)
+    public static function delPermissionsFromMany($permissions, $models): void
     {
         $permissions = static::normalizePermissions($permissions);
         $models = static::normalizeModels($models);
@@ -478,7 +478,7 @@ Trait HasPermission
             ->delete();
     }
 
-    /*
+    /**
      * Get the name of the id column of this model class
      *
      * @return string
@@ -488,13 +488,13 @@ Trait HasPermission
         return 'id';
     }
 
-    /*
+    /**
      * Get the given roles with their permissions
      *
-     * @param  mixed $models
+     * @param  array|Collection $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function withPermissions($models)
+    public static function withPermissions($models): Collection
     {
         // normalize models
         $roles = static::normalizeModels($models);
@@ -548,13 +548,13 @@ Trait HasPermission
         return $roles;
     }
 
-    /*
+    /**
      * Get the given roles with their permission names
      *
-     * @param  mixed $models
+     * @param  array|Collection $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function withPermissionNames($models)
+    public static function withPermissionNames($models): Collection
     {
         $models = static::withPermissions($models);
         foreach ($models as $m)

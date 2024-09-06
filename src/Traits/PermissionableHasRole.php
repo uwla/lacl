@@ -8,11 +8,17 @@ Trait PermissionableHasRole
 {
     use Permissionable, HasRole;
 
-    // override __call from Permissionable and HasPermission
-    // in order to avoid conflict
+    /**
+     * Call magic method.
+     * Override __call from Permissionable and HasPermission to avoid conflict.
+     *
+     * @param string $name      The name of the method
+     * @param array  $arguments The arguments passed
+     * @return mixed
+     */
     public function __call($name, $arguments)
     {
-        // PART 1
+        // get|create|delete|grant|attach|revoke Permission
         $pattern = '/^(get|create|delete|grant|attach|revoke)([A-Za-z]+)Permissions?$/';
         $matches = [];
         if (preg_match($pattern, $name, $matches))
@@ -35,7 +41,7 @@ Trait PermissionableHasRole
             return call_user_func_array(array(static::class, $method), $arguments);
         }
 
-        // PART 2
+        // add|has|del PermissionTo ${Model}
         $pattern = '/^(add|has|del)PermissionTo([A-Za-z]+)$/';
         $matches = [];
         if (preg_match($pattern, $name, $matches))
@@ -58,7 +64,7 @@ Trait PermissionableHasRole
             return call_user_func_array(array($this, $method), $args);
         }
 
-        // PART 3
+        // FALLBACK
         return parent::__call($name, $arguments);
     }
 }

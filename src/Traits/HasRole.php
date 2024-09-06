@@ -3,6 +3,7 @@
 namespace Uwla\Lacl\Traits;
 
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\RoleModel;
@@ -16,7 +17,7 @@ trait HasRole
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    private function getBaseQuery()
+    private function getBaseQuery(): Builder
     {
         return RoleModel::where([
             'model' => $this::class,
@@ -29,7 +30,7 @@ trait HasRole
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getRoles()
+    public function getRoles(): Collection
     {
         $role_ids = $this->getBaseQuery()->pluck('role_id');
         return static::Role()::whereIn('id', $role_ids)->get();
@@ -40,7 +41,7 @@ trait HasRole
      *
      * @return \Illuminate\Support\Collection
      */
-    public function getRoleNames()
+    public function getRoleNames(): Collection
     {
         return $this->getRoles()->pluck('name');
     }
@@ -48,10 +49,10 @@ trait HasRole
     /*
      * add single role
      *
-     * @param  mixed $role
+     * @param  string|Role $role
      * @return void
      */
-    public function addRole($role)
+    public function addRole($role): void
     {
         $this->addRoles([$role]);
     }
@@ -59,17 +60,14 @@ trait HasRole
     /*
      * add many roles
      *
-     * @param  mixed $roles
+     * @param  array|Collection $roles
      * @return void
      */
-    public function addRoles($roles)
+    public function addRoles($roles): void
     {
         $roles = static::normalizeRoles($roles);
-
-        //
         $model = $this::class;
         $model_id = $this->getModelId();
-
         $toAdd = [];
         foreach ($roles as $role) {
             $toAdd[] = [
@@ -88,7 +86,7 @@ trait HasRole
      * @param  Role|string $role
      * @return void
      */
-    public function delRole($role)
+    public function delRole($role): void
     {
         $this->delRoles([$role]);
     }
@@ -96,10 +94,10 @@ trait HasRole
     /*
      * delete the given roles
      *
-     * @param  mixed $roles
+     * @param  array|Collection $roles
      * @return void
      */
-    public function delRoles($roles)
+    public function delRoles($roles): void
     {
         $roles = static::normalizeRoles($roles);
         $ids = $roles->pluck('id');
@@ -111,7 +109,7 @@ trait HasRole
      *
      * @return void
      */
-    public function delAllRoles()
+    public function delAllRoles(): void
     {
         $this->getBaseQuery()->delete();
     }
@@ -119,10 +117,10 @@ trait HasRole
     /*
      * set a single role associated with this model
      *
-     * @param  mixed $role
+     * @param  name|Collection $role
      * @return void
      */
-    public function setRole($role)
+    public function setRole($role): void
     {
         $this->setRoles([$role]);
     }
@@ -130,10 +128,10 @@ trait HasRole
     /*
      * set the role associated with this model
      *
-     * @param  mixed $roles
+     * @param  array|Collection $roles
      * @return void
      */
-    public function setRoles($roles)
+    public function setRoles($roles): void
     {
         // delete current user roles
         $this->delAllRoles();
@@ -147,7 +145,7 @@ trait HasRole
      *
      * @return int
      */
-    public function countRoles()
+    public function countRoles(): int
     {
         return $this->getBaseQuery()->count();
     }
@@ -158,7 +156,7 @@ trait HasRole
      * @param  Role|string $role
      * @return bool
      */
-    public function hasRole($role)
+    public function hasRole($role): bool
     {
         if (gettype($role) == 'string')
             $role = static::Role()::where('name', $role)->first();
@@ -170,10 +168,10 @@ trait HasRole
     /*
      * check whether this model has the given roles
      *
-     * @param  mixed $role
+     * @param  array|Collection $roles
      * @return bool
      */
-    public function hasRoles($roles)
+    public function hasRoles($roles): bool
     {
         return $this->hasHowManyRoles($roles) == count($roles);
     }
@@ -181,10 +179,10 @@ trait HasRole
     /*
      * check whether this model has any of the given roles
      *
-     * @param  mixed $roles
+     * @param  array|Collection $roles
      * @return bool
      */
-    public function hasAnyRole($roles)
+    public function hasAnyRole($roles): bool
     {
         return $this->hasHowManyRoles($roles) > 0;
     }
@@ -192,11 +190,11 @@ trait HasRole
     /*
      * add single role to many models
      *
-     * @param mixed $role
+     * @param array|Collection $role
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function addRoleToMany($role, $models)
+    public static function addRoleToMany($role, $models): void
     {
         static::addRolesToMany([$role], $models);
     }
@@ -204,11 +202,11 @@ trait HasRole
     /*
      * add many roles to many models
      *
-     * @param mixed $roles
+     * @param array|Collection $roles
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function addRolesToMany($roles, $models)
+    public static function addRolesToMany($roles, $models): void
     {
         $roles = static::normalizeRoles($roles);
 
@@ -232,11 +230,11 @@ trait HasRole
     /*
      * delete a single role from many models
      *
-     * @param mixed $role
+     * @param string|Role $role
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function delRoleFromMany($role, $models)
+    public static function delRoleFromMany($role, $models): void
     {
         static::delRolesFromMany([$role], $models);
     }
@@ -244,11 +242,11 @@ trait HasRole
     /*
      * delete many roles from many models
      *
-     * @param mixed $role
+     * @param array|Collection $roles
      * @param \Illuminate\Database\Eloquent\Collection $models
      * @return void
      */
-    public static function delRolesFromMany($roles, $models)
+    public static function delRolesFromMany($roles, $models): void
     {
         $roles = static::normalizeRoles($roles);
         $rids = $roles->pluck('id');
@@ -263,10 +261,10 @@ trait HasRole
     /*
      * Get the given models along with their roles
      *
-     * @param  mixed $models
+     * @param  array|Collection $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function withRoles($models)
+    public static function withRoles($models): Collection
     {
         // normalize models
         $models = static::normalizeModels($models);
@@ -315,17 +313,16 @@ trait HasRole
             $m->roles->add($r);
         }
 
-        // return the model
         return $models;
     }
 
     /*
      * Get the given users with their roles names
      *
-     * @param  mixed $models
+     * @param  array|Collection $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function withRoleNames($models)
+    public static function withRoleNames($models): Collection
     {
         $users = static::withRoles($models);
         foreach ($users as $u)
@@ -336,10 +333,10 @@ trait HasRole
     /*
      * Get how many of the given roles this model has
      *
-     * @param  mixed $roles
+     * @param  name|Collection $roles
      * @return int
      */
-    private function hasHowManyRoles($roles)
+    private function hasHowManyRoles($roles): int
     {
         $roles = static::normalizeRoles($roles);
         $ids = $roles->pluck('id');
@@ -350,10 +347,10 @@ trait HasRole
     /*
      * Normalize $roles into an Eloquent Collection of Role
      *
-     * @param mixed $roles
+     * @param  array|Collection $roles
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    private static function normalizeRoles($roles)
+    private static function normalizeRoles($roles): Collection
     {
         if (is_array($roles))
             $roles = collect($roles);
