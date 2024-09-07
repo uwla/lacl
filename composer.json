@@ -17,13 +17,13 @@
         }
     ],
     "require": {
-        "illuminate/database": "^10.0",
-        "illuminate/auth": "^10.0",
-        "nunomaduro/phpinsights": "^2.11"
+        "illuminate/database": "^11.0",
+        "illuminate/auth": "^11.0"
     },
     "require-dev": {
-        "laravel/sanctum": "^3.2",
-        "orchestra/testbench": "^8.0",
+        "laravel/sanctum": "^4.0",
+        "nunomaduro/phpinsights": "^2.11",
+        "orchestra/testbench": "^9.0",
         "phpunit/phpunit": "^10.0"
     },
     "scripts": {

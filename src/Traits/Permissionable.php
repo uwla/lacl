@@ -2,7 +2,7 @@
 
 namespace Uwla\Lacl\Traits;
 
-use Illuminate\Database\Eloquent\DbCollection;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -154,9 +154,9 @@ trait Permissionable
      *
      * @param array<string> $names
      * @param string|int $model_id
-     * @return \Illuminate\Database\Eloquent\DbCollection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
-    protected static function createManyPermissions($names, $model_id = null): DbCollection
+    protected static function createManyPermissions($names, $model_id = null): Collection
     {
         $permission_names = static::getPrefixed($names);
 
@@ -178,9 +178,9 @@ trait Permissionable
      *
      * @param array<string> $names
      * @param mixed         $model_id
-     * @return \Illuminate\Database\Eloquent\DbCollection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
-    protected static function getManyPermissions($names, $model_id = null): DbCollection
+    protected static function getManyPermissions($names, $model_id = null): Collection
     {
         $names = static::getPrefixed($names);
         return static::Permission()::query()

@@ -2,7 +2,7 @@
 
 namespace Uwla\Lacl\Models;
 
-use Illuminate\Database\Eloquent\DbCollection;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
@@ -20,7 +20,7 @@ class Permission extends Model
      * @param string $id_column
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getModels($model_class, $id_column): DbCollection
+    public function getModels($model_class, $id_column): Collection
     {
         $ids = PermissionModel::where([
             'permission_id' => $this->id,
@@ -34,7 +34,7 @@ class Permission extends Model
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getRoles(): DbCollection
+    public function getRoles(): Collection
     {
         return $this->getModels($this::Role(), 'id');
     }
@@ -57,7 +57,7 @@ class Permission extends Model
      * @param mixed $models                The models or their ids (optional)
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function getByName($names, $modelType = null, $models = null): DbCollection
+    public static function getByName($names, $modelType = null, $models = null): Collection
     {
         if (is_string($names)) {
             $names = [$names];
@@ -99,7 +99,7 @@ class Permission extends Model
                 );
             }
 
-            if ($models instanceof DbCollection) {
+            if ($models instanceof Collection) {
                 $models = $models->pluck('id');
             }
 
@@ -123,7 +123,7 @@ class Permission extends Model
      * @param  array<string> $name
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function createOne($name): DbCollection
+    public static function createOne($name): Collection
     {
         return static::create(['name' => $name]);
     }
@@ -134,13 +134,13 @@ class Permission extends Model
      * @param  array<string> $names
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function createMany($names): DbCollection
+    public static function createMany($names): Collection
     {
         if (! is_array($names)) {
             throw new InvalidArgumentException('Expected string array');
         }
         if (count($names) == 0) {
-            return new DbCollection();
+            return new Collection();
         }
 
         // create permissions
