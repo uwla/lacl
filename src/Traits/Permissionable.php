@@ -19,7 +19,7 @@ trait Permissionable
     public function deleteThisModelPermissions(): void
     {
         static::Permission()::where([
-            'model' => $this::class,
+            'model_type' => $this::class,
             'model_id' => $this->getModelId(),
         ])->delete();
     }
@@ -31,7 +31,7 @@ trait Permissionable
      */
     public static function deleteAllModelPermissions(): void
     {
-        static::Permission()::where('model', static::class)->delete();
+        static::Permission()::where('model_type', static::class)->delete();
     }
 
     /**
@@ -42,7 +42,7 @@ trait Permissionable
     public static function deleteGenericModelPermissions(): void
     {
         static::Permission()::where([
-            'model' => static::class,
+            'model_type' => static::class,
             'model_id' => null
         ])->delete();
     }
@@ -85,7 +85,7 @@ trait Permissionable
     protected static function createPermission($permissionName, $model_id = null): Model
     {
         return static::Permission()::firstOrCreate([
-            'model' => static::class,
+            'model_type' => static::class,
             'model_id' => $model_id,
             'name' => static::getPermissionPrefix() . '.' . $permissionName,
         ]);
@@ -101,7 +101,7 @@ trait Permissionable
     protected static function getPermission($permissionName, $model_id = null): Model
     {
         return static::Permission()::where([
-            'model' => static::class,
+            'model_type' => static::class,
             'model_id' => $model_id,
             'name' => static::getPermissionPrefix() . '.' . $permissionName,
         ])->first();
@@ -164,7 +164,7 @@ trait Permissionable
         foreach ($permission_names as $name) {
             $toCreate[] = [
                 'name' => $name,
-                'model' => static::class,
+                'model_type' => static::class,
                 'model_id' => $model_id,
             ];
         }
@@ -185,7 +185,7 @@ trait Permissionable
         $names = static::getPrefixed($names);
         return static::Permission()::query()
             ->whereIn('name', $names)
-            ->where('model', static::class)
+            ->where('model_type', static::class)
             ->where('model_id', $model_id)
             ->get();
     }
@@ -202,7 +202,7 @@ trait Permissionable
         $names = static::getPrefixed($names);
         static::Permission()::query()
             ->whereIn('name', $names)
-            ->where('model', static::class)
+            ->where('model_type', static::class)
             ->where('model_id', $model_id)
             ->delete();
     }

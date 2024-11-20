@@ -36,7 +36,7 @@ class HasRoleTest extends TestCase
         $user->addRole($role);
         $this->assertTrue(
             RoleModel::where([
-                'model' => $user::class,
+                'model_type' => $user::class,
                 'model_id' => $user->id,
                 'role_id' => $role->id
             ])->exists()
@@ -57,7 +57,7 @@ class HasRoleTest extends TestCase
         $ids = RoleModel::query()
             ->where([
                 'model_id' => $user->id,
-                'model' => $user::class
+                'model_type' => $user::class
             ])->pluck('role_id');
         $user_roles = Role::whereIn('id', $ids)->get();
         $this->assertTrue($roles->diff($user_roles)->isEmpty());
@@ -217,7 +217,7 @@ class HasRoleTest extends TestCase
         $f = fn() => RoleModel::query()
             ->whereIn('role_id', $rid)
             ->whereIn('model_id', $uid)
-            ->where('model', $users->first()::class)
+            ->where('model_type', $users->first()::class)
             ->count();
 
         User::addRolesToMany($roles, $users);

@@ -65,7 +65,7 @@ class ResourcePolicyTest extends TestCase
         // the attributes of the permission
         $attributes = [
             'name' => $name,
-            'model' => $model,
+            'model_type' => $model,
             'model_id' => $model_id,
         ];
 

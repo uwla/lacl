@@ -9,13 +9,27 @@ class PermissionFactory extends Factory
     protected $model = \Tests\App\Models\Permission::class;
 
     const genericModelNames = [
-        "article", "comment", "course", "ebook", "playlist", "product", "tag",
-        "user", "video"
+        "article",
+        "comment",
+        "course",
+        "ebook",
+        "playlist",
+        "product",
+        "tag",
+        "user",
+        "video",
     ];
 
     const actions = [
-        "create", "delete", "deleteAny", "forceDelete", "forceDeleteAny",
-        "update", "updateAny", "view", "viewAny",
+        "create",
+        "delete",
+        "deleteAny",
+        "forceDelete",
+        "forceDeleteAny",
+        "update",
+        "updateAny",
+        "view",
+        "viewAny",
     ];
 
     /**
@@ -32,7 +46,7 @@ class PermissionFactory extends Factory
 
         return [
             'name' => $name,
-            'model' => $model,
+            'model_type' => $model,
         ];
     }
 }

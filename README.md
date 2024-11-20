@@ -335,7 +335,7 @@ $article = Article::first();
 
 $permission = Permission::create([
   'name' => 'article.edit',   // can be any name, but standards help automation
-  'model' => Article::class,
+  'model_type' => Article::class,
   'model_id' => $article->id;
 ]);
 
@@ -592,7 +592,7 @@ protected static function boot() {
     parent::boot();
     static::deleted(function($model) {
         Permission::where([
-            'model' => $model::class,
+            'model_type' => $model::class,
             'model_id' => $model->id,
         ])->delete();
     });

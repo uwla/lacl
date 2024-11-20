@@ -20,7 +20,7 @@ trait HasRole
     private function getBaseQuery(): Builder
     {
         return RoleModel::where([
-            'model' => $this::class,
+            'model_type' => $this::class,
             'model_id' => $this->getModelId(),
         ]);
     }
@@ -71,7 +71,7 @@ trait HasRole
         $toAdd = [];
         foreach ($roles as $role) {
             $toAdd[] = [
-                'model'   => $model,
+                'model_type'   => $model,
                 'model_id' => $model_id,
                 'role_id'  => $role->id,
             ];
@@ -218,7 +218,7 @@ trait HasRole
         foreach ($role_ids as $rid) {
             foreach ($model_ids as $mid) {
                 $toCreate[] = [
-                    'model' => $model,
+                    'model_type' => $model,
                     'model_id' => $mid,
                     'role_id' => $rid,
                 ];
@@ -254,7 +254,7 @@ trait HasRole
         RoleModel::query()
             ->whereIn('role_id', $rids)
             ->whereIn('model_id', $uids)
-            ->where('model', static::class)
+            ->where('model_type', static::class)
             ->delete();
     }
 
@@ -277,7 +277,7 @@ trait HasRole
 
         // get the association models
         $rms = RoleModel::query()
-            ->where('model', static::class)
+            ->where('model_type', static::class)
             ->whereIn('model_id', $mids)
             ->get();
 

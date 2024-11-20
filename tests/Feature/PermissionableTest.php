@@ -25,7 +25,7 @@ class PermissionableTest extends TestCase
         $permissionable = $this->newPermissionable();
 
         $attr = [
-            'model' => $permissionable::class,
+            'model_type' => $permissionable::class,
             'model_id' => $permissionable->id,
         ];
 
@@ -47,7 +47,7 @@ class PermissionableTest extends TestCase
 
         // attributes
         $attr = [
-            'model' => $permissionable::class,
+            'model_type' => $permissionable::class,
             'model_id' => $permissionable->id,
         ];
         $prefix = $permissionable::getPermissionPrefix();
@@ -64,7 +64,7 @@ class PermissionableTest extends TestCase
         // that is, we are not testing per-model permissions.
         $permissionable::createCrudPermissions();
         $attr = [
-            'model' => $permissionable::class,
+            'model_type' => $permissionable::class,
         ];
         foreach (['create', 'viewAny', 'updateAny', 'deleteAny'] as $action)
         {
@@ -152,7 +152,7 @@ class PermissionableTest extends TestCase
 
         // test per model permissions
         $attr = [
-            'model' => $permissionable::class,
+            'model_type' => $permissionable::class,
             'model_id' => $permissionable->id,
         ];
 
@@ -163,7 +163,7 @@ class PermissionableTest extends TestCase
 
         // now, with static permissions
         $attr = [
-            'model' => $permissionable::class,
+            'model_type' => $permissionable::class,
         ];
 
         $permissionable::createCrudPermissions(); // create, viewAny, updateAny, deleteAny

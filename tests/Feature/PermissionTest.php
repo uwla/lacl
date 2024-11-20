@@ -14,19 +14,19 @@ class PermissionTest extends TestCase
         Permission::insert([
             [
                 'name' => 'article.viewAny',
-                'model' => null
+                'model_type' => null
             ],
             [
                 'name' => 'article.updateAny',
-                'model' => null
+                'model_type' => null
             ],
             [
                 'name' => 'article.viewAny',
-                'model' => 'Article'
+                'model_type' => 'Article'
             ],
             [
                 'name' => 'article.updateAny',
-                'model' => 'Article'
+                'model_type' => 'Article'
             ],
         ]);
 
@@ -37,15 +37,20 @@ class PermissionTest extends TestCase
 
         $m = 'Article';
         $p = Permission::getByName($arr, $m);
-        $p = $p->filter(fn($el) => in_array($el->name, $arr) && $el->model == $m);
+        $p = $p->filter(fn($el) => in_array($el->name, $arr) && $el->model_type == $m);
         $this->assertTrue($p->count() == 2);
     }
 
     public function test_create_permissions_by_name()
     {
         $names = [
-            'manage users', 'dispatch jobs', 'delete articles', 'upload files',
-            'create teams', 'view orders', 'edit roles',
+            'manage users',
+            'dispatch jobs',
+            'delete articles',
+            'upload files',
+            'create teams',
+            'view orders',
+            'edit roles',
         ];
         $created = Permission::createMany($names);
         $found = Permission::whereIn('name', $names)->get();

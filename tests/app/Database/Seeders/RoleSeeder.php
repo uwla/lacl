@@ -33,8 +33,8 @@ class RoleSeeder extends Seeder
         ]);
 
         $adminPermissions = Permission::all();
-        $userManagerPermissions = Permission::where('model', User::class)->get();
-        $managerPermissions = Permission::whereIn('model', [User::class, Role::class])->get();
+        $userManagerPermissions = Permission::where('model_type', User::class)->get();
+        $managerPermissions = Permission::whereIn('model_type', [User::class, Role::class])->get();
 
         $admin->addPermissions($adminPermissions);
         $userManager->addPermissions($userManagerPermissions);

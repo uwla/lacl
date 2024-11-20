@@ -24,7 +24,7 @@ class Permission extends Model
     {
         $ids = PermissionModel::where([
             'permission_id' => $this->id,
-            'model' => $model_class,
+            'model_type' => $model_class,
         ])->pluck('model_id');
         return $model_class::whereIn($id_column, $ids)->get();
     }
@@ -76,7 +76,7 @@ class Permission extends Model
         }
 
         if ($modelType != null) {
-            $query = static::where('model', $modelType);
+            $query = static::where('model_type', $modelType);
         } else {
             $query = static::query();
         }

@@ -44,7 +44,7 @@ class HasPermissionTest extends TestCase
         // assert it currently does not have the permission
         $this->assertFalse(
             PermissionModel::where([
-                'model' => $role::class,
+                'model_type' => $role::class,
                 'model_id' => $role->id,
                 'permission_id' => $permission->id
             ])->exists()
@@ -56,7 +56,7 @@ class HasPermissionTest extends TestCase
         // assert it now has the permission
         $this->assertTrue(
             PermissionModel::where([
-                'model' => $role::class,
+                'model_type' => $role::class,
                 'model_id' => $role->id,
                 'permission_id' => $permission->id
             ])->exists()
@@ -79,7 +79,7 @@ class HasPermissionTest extends TestCase
         $m = PermissionModel::query()
             ->whereIn('permission_id', $ids)
             ->where('model_id', $role->id)
-            ->where('model', $role::class)
+            ->where('model_type', $role::class)
             ->count();
         $this->assertEquals(0, $m);
 
@@ -90,7 +90,7 @@ class HasPermissionTest extends TestCase
         $m = PermissionModel::query()
             ->whereIn('permission_id', $ids)
             ->where('model_id', $role->id)
-            ->where('model', $role::class)
+            ->where('model_type', $role::class)
             ->count();
         $this->assertEquals($n, $m);
     }
@@ -316,7 +316,7 @@ class HasPermissionTest extends TestCase
         $f = fn() => PermissionModel::query()
             ->whereIn('permission_id', $pid)
             ->whereIn('model_id', $rid)
-            ->where('model', $roles->first()::class)
+            ->where('model_type', $roles->first()::class)
             ->count();
 
         Role::addPermissionsToMany($permissions, $roles);
@@ -341,7 +341,8 @@ class HasPermissionTest extends TestCase
         $roles->each(fn($r) => $r->addPermissions($permissions->random(1, $n)));
 
         $roles = Role::withPermissionNames($roles);
-        foreach ($roles as $r)
+        foreach ($roles as $r) {
             $this->assertEquals($r->permissions, $r->getPermissionNames());
+        }
     }
 }

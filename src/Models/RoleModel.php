@@ -14,5 +14,5 @@ class RoleModel extends Model
      *
      * @var string
     */
-    protected $table = 'roles_models';
+    protected $table = 'role_model';
 }

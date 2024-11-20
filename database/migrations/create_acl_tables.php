@@ -16,10 +16,10 @@ return new class extends Migration
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('model')->nullable();
+            $table->string('model_type')->nullable();
             $table->string('model_id')->nullable();
             $table->string('description')->nullable();
-            $table->unique(['name', 'model', 'model_id']);
+            $table->unique(['name', 'model_type', 'model_id']);
             $table->timestamps();
         });
 
@@ -30,27 +30,27 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('permissions_models', function (Blueprint $table) {
-            $table->string('model');
+        Schema::create('permission_model', function (Blueprint $table) {
+            $table->string('model_type');
             $table->string('model_id');
             $table->unsignedBigInteger('permission_id');
             $table->foreign('permission_id')
                   ->references('id')
                   ->on('permissions')
                   ->cascadeOnDelete();
-            $table->primary(['model', 'model_id', 'permission_id']);
+            $table->primary(['model_type', 'model_id', 'permission_id']);
             $table->timestamps();
         });
 
-        Schema::create('roles_models', function (Blueprint $table) {
-            $table->string('model');
+        Schema::create('role_model', function (Blueprint $table) {
+            $table->string('model_type');
             $table->string('model_id');
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')
                   ->references('id')
                   ->on('roles')
                   ->cascadeOnDelete();
-            $table->primary(['model', 'model_id', 'role_id']);
+            $table->primary(['model_type', 'model_id', 'role_id']);
             $table->timestamps();
         });
     }
@@ -62,8 +62,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permissions_models');
-        Schema::dropIfExists('roles_models');
+        Schema::dropIfExists('permission_model');
+        Schema::dropIfExists('role_model');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('permissions');
     }

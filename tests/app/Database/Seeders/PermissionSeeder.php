@@ -35,7 +35,7 @@ class PermissionSeeder extends Seeder
                 $actionName = $name . "." . $action . $actionSuffix;
                 $permissions[] = [
                     'name' => $actionName,
-                    'model' => $resource,
+                    'model_type' => $resource,
                 ];
             }
         }

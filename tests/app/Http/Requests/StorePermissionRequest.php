@@ -25,7 +25,7 @@ class StorePermissionRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'model' => 'nullable|string',
+            'model_type' => 'nullable|string',
             'model_id' => 'nullable|integer'
         ];
     }

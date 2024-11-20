@@ -14,7 +14,12 @@ class Permission extends BasePermission
      *
      * @var array<int, string>
      */
-    public $fillable = [ 'description', 'model', 'model_id', 'name', ];
+    public $fillable = [
+        'description',
+        'model_type',
+        'model_id',
+        'name',
+    ];
 
     /**
      * Create a new factory instance for the model.
