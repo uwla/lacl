@@ -5,7 +5,7 @@ namespace Uwla\Lacl\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RoleModel extends Model
+class Roleable extends Model
 {
     use HasFactory;
 
@@ -14,5 +14,5 @@ class RoleModel extends Model
      *
      * @var string
     */
-    protected $table = 'role_model';
+    protected $table = 'roleables';
 }

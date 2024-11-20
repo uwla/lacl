@@ -12,7 +12,7 @@ use ReflectionClass;
 use Uwla\Lacl\Contracts\HasRoleContract;
 use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\Permissionable;
-use Uwla\Lacl\Models\RoleModel;
+use Uwla\Lacl\Models\Roleable;
 
 trait HasPermission
 {
@@ -218,9 +218,9 @@ trait HasPermission
             return $query->pluck('permission_id');
         }
 
-        $role_ids = RoleModel::where([
-            'model_type' => $model,
-            'model_id' => $model_id,
+        $role_ids = Roleable::where([
+            'roleable_type' => $model,
+            'roleable_id' => $model_id,
         ])->pluck('role_id');
 
         if ($role_ids->count() > 0) {

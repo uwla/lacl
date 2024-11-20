@@ -6,7 +6,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Uwla\Lacl\Models\Role;
-use Uwla\Lacl\Models\RoleModel;
+use Uwla\Lacl\Models\Roleable;
 
 trait HasRole
 {
@@ -19,9 +19,9 @@ trait HasRole
      */
     private function getBaseQuery(): Builder
     {
-        return RoleModel::where([
-            'model_type' => $this::class,
-            'model_id' => $this->getModelId(),
+        return Roleable::where([
+            'roleable_type' => $this::class,
+            'roleable_id' => $this->getModelId(),
         ]);
     }
 
@@ -71,12 +71,12 @@ trait HasRole
         $toAdd = [];
         foreach ($roles as $role) {
             $toAdd[] = [
-                'model_type'   => $model,
-                'model_id' => $model_id,
+                'roleable_type'   => $model,
+                'roleable_id' => $model_id,
                 'role_id'  => $role->id,
             ];
         }
-        RoleModel::insert($toAdd);
+        Roleable::insert($toAdd);
     }
 
     /*
@@ -212,13 +212,13 @@ trait HasRole
         foreach ($role_ids as $rid) {
             foreach ($model_ids as $mid) {
                 $toCreate[] = [
-                    'model_type' => $model,
-                    'model_id' => $mid,
+                    'roleable_type' => $model,
+                    'roleable_id' => $mid,
                     'role_id' => $rid,
                 ];
             }
         }
-        RoleModel::insert($toCreate);
+        Roleable::insert($toCreate);
     }
 
     /*
@@ -245,10 +245,10 @@ trait HasRole
         $roles = static::normalizeRoles($roles);
         $rids = $roles->pluck('id');
         $uids = $models->pluck(static::getIdColumn());
-        RoleModel::query()
+        Roleable::query()
             ->whereIn('role_id', $rids)
-            ->whereIn('model_id', $uids)
-            ->where('model_type', static::class)
+            ->whereIn('roleable_id', $uids)
+            ->where('roleable_type', static::class)
             ->delete();
     }
 
@@ -263,9 +263,9 @@ trait HasRole
         $models = static::normalizeModels($models);
         $idColumn = static::getIdColumn();
         $mids = $models->pluck($idColumn);
-        $role_models = RoleModel::query()
-            ->where('model_type', static::class)
-            ->whereIn('model_id', $mids)
+        $role_models = Roleable::query()
+            ->where('roleable_type', static::class)
+            ->whereIn('roleable_id', $mids)
             ->get();
         $role_ids = $role_models->pluck('role_id');
         $roles = Role::whereIn('id', $role_ids)->get();
@@ -289,7 +289,7 @@ trait HasRole
             $model->roles = collect();
 
         foreach ($role_models as $role_model) {
-            $model_id = $role_model->model_id;
+            $model_id = $role_model->roleable_id;
             $role_id = $role_model->role_id;
             $model = $id2model[$model_id];
             $role = $id2role[$role_id];

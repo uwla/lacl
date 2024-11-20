@@ -46,15 +46,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('role_model', function (Blueprint $table) {
-            $table->string('model_type');
-            $table->string('model_id');
+        Schema::create('roleables', function (Blueprint $table) {
+            $table->string('roleable_type');
+            $table->string('roleable_id');
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')
                   ->references('id')
                   ->on('roles')
                   ->cascadeOnDelete();
-            $table->primary(['model_type', 'model_id', 'role_id']);
+            $table->primary(['roleable_type', 'roleable_id', 'role_id']);
             $table->timestamps();
         });
     }
@@ -67,7 +67,7 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('permissionables');
-        Schema::dropIfExists('role_model');
+        Schema::dropIfExists('roleables');
         Schema::dropIfExists('roles');
         Schema::dropIfExists('permissions');
     }

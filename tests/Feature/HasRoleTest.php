@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Tests\App\Models\Role;
 use Tests\App\Models\User;
 use Tests\TestCase;
-use Uwla\Lacl\Models\RoleModel;
+use Uwla\Lacl\Models\Roleable;
 
 class HasRoleTest extends TestCase
 {
@@ -35,9 +35,9 @@ class HasRoleTest extends TestCase
 
         $user->addRole($role);
         $this->assertTrue(
-            RoleModel::where([
-                'model_type' => $user::class,
-                'model_id' => $user->id,
+            Roleable::where([
+                'roleable_type' => $user::class,
+                'roleable_id' => $user->id,
                 'role_id' => $role->id
             ])->exists()
         );
@@ -54,10 +54,10 @@ class HasRoleTest extends TestCase
         $roles = Role::factory($this->m)->create();
 
         $user->addRoles($roles);
-        $ids = RoleModel::query()
+        $ids = Roleable::query()
             ->where([
-                'model_id' => $user->id,
-                'model_type' => $user::class
+                'roleable_id' => $user->id,
+                'roleable_type' => $user::class
             ])->pluck('role_id');
         $user_roles = Role::whereIn('id', $ids)->get();
         $this->assertTrue($roles->diff($user_roles)->isEmpty());
@@ -214,10 +214,10 @@ class HasRoleTest extends TestCase
 
         $uid = $users->pluck('id');
         $rid = $roles->pluck('id');
-        $f = fn() => RoleModel::query()
+        $f = fn() => Roleable::query()
             ->whereIn('role_id', $rid)
-            ->whereIn('model_id', $uid)
-            ->where('model_type', $users->first()::class)
+            ->whereIn('roleable_id', $uid)
+            ->where('roleable_type', $users->first()::class)
             ->count();
 
         User::addRolesToMany($roles, $users);
