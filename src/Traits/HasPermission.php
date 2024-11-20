@@ -5,6 +5,7 @@ namespace Uwla\Lacl\Traits;
 use BadMethodCallException;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -18,6 +19,16 @@ trait HasPermission
 {
     use Identifiable;
     use CustomAclModels;
+
+    /**
+     * Get all permissions assigned to this model using MorphToMany.
+     *
+     * @return MorphToMany
+     */
+    public function permissions(): MorphToMany
+    {
+        return $this->morphToMany(static::Permission(), 'permissionable');
+    }
 
     /**
      * Get the id of this model

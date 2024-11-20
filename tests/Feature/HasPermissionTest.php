@@ -117,6 +117,21 @@ class HasPermissionTest extends TestCase
     }
 
     /**
+     * Test getting the permissions via MorphToMany.
+     *
+     * @return void
+     */
+    public function test_get_permissions_morph_to_many()
+    {
+        $n = $this->n;
+        $role = Role::factory()->createOne();
+        $permissions = Permission::factory($n)->create();
+        $role->addPermissions($permissions);
+        $role_permissions = $role->permissions;
+        $this->assertTrue($permissions->diff($role_permissions)->isEmpty());
+    }
+
+    /**
      * Test having the given permission
      *
      * @return void

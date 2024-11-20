@@ -72,10 +72,22 @@ class HasRoleTest extends TestCase
     {
         $user = User::factory()->createOne();
         $roles = Role::factory($this->m)->create();
-
         $user->addRoles($roles);
         $user_roles = $user->getRoles();
         $this->assertTrue($roles->diff($user_roles)->isEmpty());
+    }
+
+    /**
+     * Test getting the roles via MorphToMany
+     *
+     * @return void
+     */
+    public function test_get_roles_morph_to_many(): void
+    {
+        $user = User::factory()->createOne();
+        $roles = Role::factory($this->m)->create();
+        $user->addRoles($roles);
+        $this->assertTrue($roles->diff($user->roles)->isEmpty());
     }
 
     /**

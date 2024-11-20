@@ -4,6 +4,7 @@ namespace Uwla\Lacl\Traits;
 
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Uwla\Lacl\Models\Role;
 use Uwla\Lacl\Models\Roleable;
@@ -11,6 +12,16 @@ use Uwla\Lacl\Models\Roleable;
 trait HasRole
 {
     use HasPermission;
+
+    /**
+     * Get all permissions assigned to this model using MorphToMany.
+     *
+     * @return MorphToMany
+     */
+    public function roles(): MorphToMany
+    {
+        return $this->morphToMany(static::Role(), 'roleable');
+    }
 
     /*
      * Get a base query to keep building on it
