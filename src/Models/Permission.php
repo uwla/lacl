@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
-use Uwla\Lacl\Traits\Permissionable;
+use Uwla\Lacl\Traits\Permissionable as IsPermissionable;
 
 class Permission extends Model
 {
     use HasFactory;
-    use Permissionable;
+    use IsPermissionable;
 
     /**
      * Get the instances of the given model which have this permission
@@ -22,7 +22,7 @@ class Permission extends Model
      */
     public function getModels($model_class, $id_column): Collection
     {
-        $ids = PermissionModel::where([
+        $ids = Permissionable::where([
             'permission_id' => $this->id,
             'permissionable_type' => $model_class,
         ])->pluck('permissionable_id');

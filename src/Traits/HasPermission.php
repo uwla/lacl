@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use ReflectionClass;
 use Uwla\Lacl\Contracts\HasRoleContract;
 use Uwla\Lacl\Models\Permission;
-use Uwla\Lacl\Models\PermissionModel;
+use Uwla\Lacl\Models\Permissionable;
 use Uwla\Lacl\Models\RoleModel;
 
 trait HasPermission
@@ -134,7 +134,7 @@ trait HasPermission
                 'permission_id' => $permission->id,
             ];
         }
-        PermissionModel::insert($toAdd);
+        Permissionable::insert($toAdd);
     }
 
     /**
@@ -164,7 +164,7 @@ trait HasPermission
         $ids = $this->getPermissionIds($permissions, $resource, $ids);
 
         // delete current role permissions
-        PermissionModel::query()
+        Permissionable::query()
             ->where([
                 'permissionable_id' => $this->getSelfRoleId(),
                 'permissionable_type' => $this::class,
@@ -181,7 +181,7 @@ trait HasPermission
      */
     public function delAllPermissions()
     {
-        PermissionModel::where([
+        Permissionable::where([
             'permissionable_id' => $this->getSelfRoleId(),
             'permissionable_type' => $this::class,
         ])->delete();
@@ -209,7 +209,7 @@ trait HasPermission
         $model_id = $this->getSelfRoleId();
         $model = $this::class;
 
-        $query = PermissionModel::where([
+        $query = Permissionable::where([
             'permissionable_type' => $model,
             'permissionable_id' => $model_id
         ]);
@@ -290,7 +290,7 @@ trait HasPermission
      */
     public function getSelfPermissions()
     {
-        $ids = PermissionModel::where([
+        $ids = Permissionable::where([
             'permissionable_type' => $this::class,
             'permissionable_id' => $this->getSelfRoleId(),
         ])->pluck('permission_id');
@@ -453,7 +453,7 @@ trait HasPermission
                 ];
             }
         }
-        PermissionModel::insert($toCreate);
+        Permissionable::insert($toCreate);
     }
 
     /**
@@ -482,7 +482,7 @@ trait HasPermission
         $permission_ids = $permissions->pluck('id');
         $role_ids = $models->map(fn ($m) => $m->getSelfRoleId());
         $model = $models->first()::class;
-        PermissionModel::query()
+        Permissionable::query()
             ->whereIn('permission_id', $permission_ids)
             ->whereIn('permissionable_id', $role_ids)
             ->where('permissionable_type', $model)
@@ -510,7 +510,7 @@ trait HasPermission
         $roles = static::normalizeModels($models);
         $model_ids = $roles->pluck('id');
         $model = $roles->first()::class;
-        $role_permissions = PermissionModel::query()
+        $role_permissions = Permissionable::query()
             ->where('permissionable_type', $model)
             ->whereIn('permissionable_id', $model_ids)
             ->get();

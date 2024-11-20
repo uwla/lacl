@@ -8,7 +8,7 @@ use Tests\App\Models\Permission;
 use Tests\App\Models\Role;
 use Tests\App\Models\User;
 use Tests\TestCase;
-use Uwla\Lacl\Models\PermissionModel;
+use Uwla\Lacl\Models\Permissionable;
 
 class HasPermissionTest extends TestCase
 {
@@ -43,7 +43,7 @@ class HasPermissionTest extends TestCase
 
         // assert it currently does not have the permission
         $this->assertFalse(
-            PermissionModel::where([
+            Permissionable::where([
                 'permissionable_type' => $role::class,
                 'permissionable_id' => $role->id,
                 'permission_id' => $permission->id
@@ -55,7 +55,7 @@ class HasPermissionTest extends TestCase
 
         // assert it now has the permission
         $this->assertTrue(
-            PermissionModel::where([
+            Permissionable::where([
                 'permissionable_type' => $role::class,
                 'permissionable_id' => $role->id,
                 'permission_id' => $permission->id
@@ -76,7 +76,7 @@ class HasPermissionTest extends TestCase
         $ids = $permissions->pluck('id');
 
         // assert it does not have the permissions
-        $m = PermissionModel::query()
+        $m = Permissionable::query()
             ->whereIn('permission_id', $ids)
             ->where('permissionable_id', $role->id)
             ->where('permissionable_type', $role::class)
@@ -87,7 +87,7 @@ class HasPermissionTest extends TestCase
         $role->addPermissions($permissions);
 
         // assert it now has the permissions
-        $m = PermissionModel::query()
+        $m = Permissionable::query()
             ->whereIn('permission_id', $ids)
             ->where('permissionable_id', $role->id)
             ->where('permissionable_type', $role::class)
@@ -313,7 +313,7 @@ class HasPermissionTest extends TestCase
 
         $pid = $permissions->pluck('id');
         $rid = $roles->pluck('id');
-        $countPermissions = fn() => PermissionModel::query()
+        $countPermissions = fn() => Permissionable::query()
             ->whereIn('permission_id', $pid)
             ->whereIn('permissionable_id', $rid)
             ->where('permissionable_type', $roles->first()::class)
