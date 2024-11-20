@@ -69,8 +69,8 @@ class Permission extends Model
             );
         }
 
-        $n = count($names);
-        if ($n == 0) {
+        $permissionCount = count($names);
+        if ($permissionCount == 0) {
             throw new InvalidArgumentException(
                 'No permission provided',
             );
@@ -82,38 +82,38 @@ class Permission extends Model
             $query = static::query();
         }
 
+        // deal with permissions for a resource group
         if ($models == null) {
-            // we are dealing with permissions for a resource group
             $query->whereIn('name', $names);
-        } else {
-            // we are dealing with permission for specific resources
-
-            if (! is_countable($models)) {
-                throw new InvalidArgumentException(
-                    'Second arguments must be array or Collection.'
-                );
-            }
-
-            if (count($models) != $n) {
-                throw new InvalidArgumentException(
-                    'number of permissions and models must match'
-                );
-            }
-
-            if ($models instanceof Collection) {
-                $models = $models->pluck('id');
-            }
-
-            // each resource is identified by its model_id
-            $query->where(function ($q) use ($names, $models, $n) {
-                for ($i = 0; $i < $n; $i += 1) {
-                    $q->orWhere([
-                        ['name', $names[$i]],
-                        ['model_id', $models[$i]],
-                    ]);
-                }
-            });
+            return $query->get();
         }
+
+        // otherwise, deal with permission for specific resources
+        if (! is_countable($models)) {
+            throw new InvalidArgumentException(
+                'Second arguments must be array or Collection.'
+            );
+        }
+
+        if (count($models) != $permissionCount) {
+            throw new InvalidArgumentException(
+                'number of permissions and models must match'
+            );
+        }
+
+        if ($models instanceof Collection) {
+            $models = $models->pluck('id');
+        }
+
+        // each resource is identified by its model_id
+        $query->where(function ($q) use ($names, $models, $permissionCount) {
+            for ($i = 0; $i < $permissionCount; $i += 1) {
+                $q->orWhere([
+                    ['name', $names[$i]],
+                    ['model_id', $models[$i]],
+                ]);
+            }
+        });
 
         return $query->get();
     }
@@ -140,17 +140,16 @@ class Permission extends Model
         if (! is_array($names)) {
             throw new InvalidArgumentException('Expected string array');
         }
+
         if (count($names) == 0) {
             return new Collection();
         }
 
-        // create permissions
         $permissionsToCreate = [];
         foreach ($names as $name);
         $permissionsToCreate[] = ['name' => $name];
-        static::insert($permissionsToCreate); // bulk insertion
+        static::insert($permissionsToCreate);
 
-        // return them
         return static::whereIn('names', $names)->get();
     }
 }

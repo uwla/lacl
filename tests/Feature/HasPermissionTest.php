@@ -313,17 +313,17 @@ class HasPermissionTest extends TestCase
 
         $pid = $permissions->pluck('id');
         $rid = $roles->pluck('id');
-        $f = fn() => PermissionModel::query()
+        $countPermissions = fn() => PermissionModel::query()
             ->whereIn('permission_id', $pid)
             ->whereIn('permissionable_id', $rid)
             ->where('permissionable_type', $roles->first()::class)
             ->count();
 
         Role::addPermissionsToMany($permissions, $roles);
-        $this->assertTrue($f() == $n * $m);
+        $this->assertTrue($countPermissions() == $n * $m);
         $this->assertTrue($roles->random()->hasPermissions($permissions));
         Role::delPermissionsFromMany($permissions, $roles);
-        $this->assertTrue($f() == 0);
+        $this->assertTrue($countPermissions() == 0);
         $this->assertFalse($roles->random()->hasAnyPermission($permissions));
     }
 

@@ -14,9 +14,10 @@ use Uwla\Lacl\Models\Permission;
 use Uwla\Lacl\Models\PermissionModel;
 use Uwla\Lacl\Models\RoleModel;
 
-Trait HasPermission
+trait HasPermission
 {
-    use Identifiable, CustomAclModels;
+    use Identifiable;
+    use CustomAclModels;
 
     /**
      * Get the id of this model
@@ -40,14 +41,17 @@ Trait HasPermission
     private static function normalizePermissions($permissions, $resource = null, $ids = null): Collection
     {
         $normalized = $permissions;
-        if (is_array($permissions))
+        if (is_array($permissions)) {
             $normalized = collect($permissions);
-        if (!$normalized instanceof Collection)
+        }
+        if (!$normalized instanceof Collection) {
             throw new Exception('Permissions must be array or Eloquent Collection');
-        if (is_string($normalized->first()))
+        }
+        if (is_string($normalized->first())) {
             $normalized = static::Permission()::getByName($permissions, $resource, $ids);
-        else if (!$normalized->first() instanceof Permission)
+        } elseif (!$normalized->first() instanceof Permission) {
             throw new Exception('Expected a collection of Permission. Got something else.');
+        }
         return $normalized;
     }
 
@@ -59,12 +63,15 @@ Trait HasPermission
      */
     private static function normalizeModels($models): Collection
     {
-        if (is_array($models))
+        if (is_array($models)) {
             $models = collect($models);
-        if (!$models instanceof Collection)
+        }
+        if (!$models instanceof Collection) {
             throw new Exception('Models must be array or Eloquent Collection');
-        if (is_scalar($models->first()))
-            $models = static::find($models); // find by id
+        }
+        if (is_scalar($models->first())) {
+            $models = static::find($models);
+        } // find by id
         return $models;
     }
 
@@ -207,19 +214,21 @@ Trait HasPermission
             'permissionable_id' => $model_id
         ]);
 
-        if ($this instanceof HasRoleContract) {
-            $role_ids = RoleModel::where([
-                'model_type' => $model,
-                'model_id' => $model_id
-            ])->pluck('role_id');
+        if (! $this instanceof HasRoleContract) {
+            return $query->pluck('permission_id');
+        }
 
-            if ($role_ids->count() > 0) {
-                $role_model = $this::Role();
-                $query->orWhere(function ($q) use ($role_model, $role_ids) {
-                    $q->where('permissionable_type', $role_model)
-                      ->whereIn('permissionable_id', $role_ids);
-                });
-            }
+        $role_ids = RoleModel::where([
+            'model_type' => $model,
+            'model_id' => $model_id,
+        ])->pluck('role_id');
+
+        if ($role_ids->count() > 0) {
+            $role_model = $this::Role();
+            $query->orWhere(function ($q) use ($role_model, $role_ids) {
+                $q->where('permissionable_type', $role_model)
+                  ->whereIn('permissionable_id', $role_ids);
+            });
         }
 
         return $query->pluck('permission_id');
@@ -245,11 +254,13 @@ Trait HasPermission
     {
         // type validation for the class, using the reflection helper
         $instance = (new ReflectionClass($class))->newInstance();
-        if (!$instance instanceof Model)
+        if (!$instance instanceof Model) {
             throw new BadMethodCallException('Class should be Eloquent model.');
+        }
 
-        if (gettype($permissionNames) == 'string')
+        if (gettype($permissionNames) == 'string') {
             $permissionNames = [$permissionNames];
+        }
 
         $query = static::Permission()::query()
             ->where('model_type', $class)
@@ -381,13 +392,12 @@ Trait HasPermission
      */
     private function hasHowManyPermissions($permissions, $resource, $ids): int
     {
-        // the ids of the permissions
+        // the ids of the given permissions
         $permission_ids = $this->getPermissionIds($permissions, $resource, $ids)->toArray();
 
         // the ids of the permissions of this model
         $this_permission_ids = $this->getThisPermissionsIds()->toArray();
 
-        // count the intersections
         return count(array_intersect($permission_ids, $this_permission_ids));
     }
 
@@ -469,12 +479,12 @@ Trait HasPermission
     {
         $permissions = static::normalizePermissions($permissions);
         $models = static::normalizeModels($models);
-        $pids = $permissions->pluck('id');
-        $rids = $models->map(fn ($m) => $m->getSelfRoleId());
+        $permission_ids = $permissions->pluck('id');
+        $role_ids = $models->map(fn ($m) => $m->getSelfRoleId());
         $model = $models->first()::class;
         PermissionModel::query()
-            ->whereIn('permission_id', $pids)
-            ->whereIn('permissionable_id', $rids)
+            ->whereIn('permission_id', $permission_ids)
+            ->whereIn('permissionable_id', $role_ids)
             ->where('permissionable_type', $model)
             ->delete();
     }
@@ -497,52 +507,42 @@ Trait HasPermission
      */
     public static function withPermissions($models): Collection
     {
-        // normalize models
         $roles = static::normalizeModels($models);
-
-        // get the roles ids
-        $mids = $roles->pluck('id');
-
-        // the model class
+        $model_ids = $roles->pluck('id');
         $model = $roles->first()::class;
-
-        // get the association models
-        $rps = PermissionModel::query()
+        $role_permissions = PermissionModel::query()
             ->where('permissionable_type', $model)
-            ->whereIn('permissionable_id', $mids)
+            ->whereIn('permissionable_id', $model_ids)
             ->get();
-
-        // get the permission ids
-        $pids = $rps->pluck('permission_id');
-
-        // get the permissions
-        $permissions = Permission::whereIn('id', $pids)->get();
+        $permission_ids = $role_permissions->pluck('permission_id');
+        $permissions = Permission::whereIn('id', $permission_ids)->get();
 
         // build a map ID -> role
         $id2role = [];
-        foreach ($roles as $r) {
-            $rid = $r->id;
-            $id2role[$rid] = $r;
+        foreach ($roles as $role) {
+            $role_id = $role->id;
+            $id2role[$role_id] = $role;
         }
 
         // build a map ID -> PERMISSION
         $id2permission = [];
-        foreach ($permissions as $p) {
-            $pid = $p->id;
-            $id2permission[$pid] = $p;
+        foreach ($permissions as $permission) {
+            $permission_id = $permission->id;
+            $id2permission[$permission_id] = $permission;
         }
 
         // initialize permissions array
-        foreach ($roles as $r)
-            $r->permissions = collect();
+        foreach ($roles as $role) {
+            $role->permissions = collect();
+        }
 
         // assign the permission to the model
-        foreach ($rps as $rp) {
-            $rid = $rp->permissionable_id;
-            $pid = $rp->permission_id;
-            $r = $id2role[$rid];
-            $p = $id2permission[$pid];
-            $r->permissions->add($p);
+        foreach ($role_permissions as $role_permission) {
+            $role_id = $role_permission->permissionable_id;
+            $permission_id = $role_permission->permission_id;
+            $role = $id2role[$role_id];
+            $permission = $id2permission[$permission_id];
+            $role->permissions->add($permission);
         }
 
         // return the roles
@@ -558,8 +558,9 @@ Trait HasPermission
     public static function withPermissionNames($models): Collection
     {
         $models = static::withPermissions($models);
-        foreach ($models as $m)
-            $m->permissions = $m->permissions->pluck('name');
+        foreach ($models as $model) {
+            $model->permissions = $model->permissions->pluck('name');
+        }
         return $models;
     }
 }

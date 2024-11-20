@@ -76,7 +76,6 @@ trait HasRole
                 'role_id'  => $role->id,
             ];
         }
-
         RoleModel::insert($toAdd);
     }
 
@@ -133,10 +132,7 @@ trait HasRole
      */
     public function setRoles($roles): void
     {
-        // delete current user roles
         $this->delAllRoles();
-
-        // insert new roles
         $this->addRoles($roles);
     }
 
@@ -209,11 +205,9 @@ trait HasRole
     public static function addRolesToMany($roles, $models): void
     {
         $roles = static::normalizeRoles($roles);
-
         $role_ids = $roles->pluck('id');
         $model_ids = $models->pluck(static::getIdColumn());
         $model = static::class;
-
         $toCreate = [];
         foreach ($role_ids as $rid) {
             foreach ($model_ids as $mid) {
@@ -266,68 +260,57 @@ trait HasRole
      */
     public static function withRoles($models): Collection
     {
-        // normalize models
         $models = static::normalizeModels($models);
-
-        // get the name of the id column of the model
-        $idCol = static::getIdColumn();
-
-        // get the model ids
-        $mids = $models->pluck($idCol);
-
-        // get the association models
-        $rms = RoleModel::query()
+        $idColumn = static::getIdColumn();
+        $mids = $models->pluck($idColumn);
+        $role_models = RoleModel::query()
             ->where('model_type', static::class)
             ->whereIn('model_id', $mids)
             ->get();
-
-        // get the permission ids
-        $rids = $rms->pluck('role_id');
-
-        // get the roles
-        $roles = Role::whereIn('id', $rids)->get();
+        $role_ids = $role_models->pluck('role_id');
+        $roles = Role::whereIn('id', $role_ids)->get();
 
         // build a map ID -> USER
         $id2model = [];
-        foreach ($models as $m) {
-            $mid = $m[$idCol];
-            $id2model[$mid] = $m;
+        foreach ($models as $model) {
+            $model_id = $model[$idColumn];
+            $id2model[$model_id] = $model;
         }
 
         // build a map ID -> ROLE
         $id2role = [];
-        foreach ($roles as $r) {
-            $rid = $r->id;
-            $id2role[$rid] = $r;
+        foreach ($roles as $role) {
+            $role_id = $role->id;
+            $id2role[$role_id] = $role;
         }
 
         // initialize role array
-        foreach ($models as $m)
-            $m->roles = collect();
+        foreach ($models as $model)
+            $model->roles = collect();
 
-        foreach ($rms as $rm) {
-            $mid = $rm->model_id;
-            $rid = $rm->role_id;
-            $m = $id2model[$mid];
-            $r = $id2role[$rid];
-            $m->roles->add($r);
+        foreach ($role_models as $role_model) {
+            $model_id = $role_model->model_id;
+            $role_id = $role_model->role_id;
+            $model = $id2model[$model_id];
+            $role = $id2role[$role_id];
+            $model->roles->add($role);
         }
 
         return $models;
     }
 
     /*
-     * Get the given users with their roles names
+     * Get the given models with their roles names
      *
      * @param  array|Collection $models
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public static function withRoleNames($models): Collection
     {
-        $users = static::withRoles($models);
-        foreach ($users as $u)
-            $u->roles = $u->roles->pluck('name');
-        return $users;
+        $models = static::withRoles($models);
+        foreach ($models as $model)
+            $model->roles = $model->roles->pluck('name');
+        return $models;
     }
 
     /*
