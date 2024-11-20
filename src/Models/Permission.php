@@ -24,8 +24,8 @@ class Permission extends Model
     {
         $ids = PermissionModel::where([
             'permission_id' => $this->id,
-            'model_type' => $model_class,
-        ])->pluck('model_id');
+            'permissionable_type' => $model_class,
+        ])->pluck('permissionable_id');
         return $model_class::whereIn($id_column, $ids)->get();
     }
 
@@ -62,6 +62,7 @@ class Permission extends Model
         if (is_string($names)) {
             $names = [$names];
         }
+
         if (! is_array($names)) {
             throw new InvalidArgumentException(
                 'First arg must be string array',

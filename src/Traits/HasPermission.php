@@ -122,8 +122,8 @@ Trait HasPermission
         $model_id = $this->getSelfRoleId();
         foreach ($permissions as $permission) {
             $toAdd[] = [
-                'model_type' => $model,
-                'model_id' => $model_id,
+                'permissionable_type' => $model,
+                'permissionable_id' => $model_id,
                 'permission_id' => $permission->id,
             ];
         }
@@ -159,8 +159,8 @@ Trait HasPermission
         // delete current role permissions
         PermissionModel::query()
             ->where([
-                'model_id' => $this->getSelfRoleId(),
-                'model_type' => $this::class,
+                'permissionable_id' => $this->getSelfRoleId(),
+                'permissionable_type' => $this::class,
             ])
             ->whereIn('permission_id', $ids)
             ->delete();
@@ -175,8 +175,8 @@ Trait HasPermission
     public function delAllPermissions()
     {
         PermissionModel::where([
-            'model_id' => $this->getSelfRoleId(),
-            'model_type' => $this::class,
+            'permissionable_id' => $this->getSelfRoleId(),
+            'permissionable_type' => $this::class,
         ])->delete();
     }
 
@@ -203,8 +203,8 @@ Trait HasPermission
         $model = $this::class;
 
         $query = PermissionModel::where([
-            'model_type' => $model,
-            'model_id' => $model_id
+            'permissionable_type' => $model,
+            'permissionable_id' => $model_id
         ]);
 
         if ($this instanceof HasRoleContract) {
@@ -216,7 +216,8 @@ Trait HasPermission
             if ($role_ids->count() > 0) {
                 $role_model = $this::Role();
                 $query->orWhere(function ($q) use ($role_model, $role_ids) {
-                    $q->where('model_type', $role_model)->whereIn('model_id', $role_ids);
+                    $q->where('permissionable_type', $role_model)
+                      ->whereIn('permissionable_id', $role_ids);
                 });
             }
         }
@@ -279,8 +280,8 @@ Trait HasPermission
     public function getSelfPermissions()
     {
         $ids = PermissionModel::where([
-            'model_type' => $this::class,
-            'model_id' => $this->getSelfRoleId(),
+            'permissionable_type' => $this::class,
+            'permissionable_id' => $this->getSelfRoleId(),
         ])->pluck('permission_id');
         return static::Permission()::whereIn('id', $ids)->get();
     }
@@ -437,8 +438,8 @@ Trait HasPermission
             foreach ($models as $model) {
                 $toCreate[] = [
                     'permission_id' => $permission->id,
-                    'model_id' => $model->getSelfRoleId(),
-                    'model_type' => $model::class,
+                    'permissionable_id' => $model->getSelfRoleId(),
+                    'permissionable_type' => $model::class,
                 ];
             }
         }
@@ -473,8 +474,8 @@ Trait HasPermission
         $model = $models->first()::class;
         PermissionModel::query()
             ->whereIn('permission_id', $pids)
-            ->whereIn('model_id', $rids)
-            ->where('model_type', $model)
+            ->whereIn('permissionable_id', $rids)
+            ->where('permissionable_type', $model)
             ->delete();
     }
 
@@ -507,8 +508,8 @@ Trait HasPermission
 
         // get the association models
         $rps = PermissionModel::query()
-            ->where('model_type', $model)
-            ->whereIn('model_id', $mids)
+            ->where('permissionable_type', $model)
+            ->whereIn('permissionable_id', $mids)
             ->get();
 
         // get the permission ids
@@ -537,7 +538,7 @@ Trait HasPermission
 
         // assign the permission to the model
         foreach ($rps as $rp) {
-            $rid = $rp->model_id;
+            $rid = $rp->permissionable_id;
             $pid = $rp->permission_id;
             $r = $id2role[$rid];
             $p = $id2permission[$pid];

@@ -44,8 +44,8 @@ class HasPermissionTest extends TestCase
         // assert it currently does not have the permission
         $this->assertFalse(
             PermissionModel::where([
-                'model_type' => $role::class,
-                'model_id' => $role->id,
+                'permissionable_type' => $role::class,
+                'permissionable_id' => $role->id,
                 'permission_id' => $permission->id
             ])->exists()
         );
@@ -56,8 +56,8 @@ class HasPermissionTest extends TestCase
         // assert it now has the permission
         $this->assertTrue(
             PermissionModel::where([
-                'model_type' => $role::class,
-                'model_id' => $role->id,
+                'permissionable_type' => $role::class,
+                'permissionable_id' => $role->id,
                 'permission_id' => $permission->id
             ])->exists()
         );
@@ -78,8 +78,8 @@ class HasPermissionTest extends TestCase
         // assert it does not have the permissions
         $m = PermissionModel::query()
             ->whereIn('permission_id', $ids)
-            ->where('model_id', $role->id)
-            ->where('model_type', $role::class)
+            ->where('permissionable_id', $role->id)
+            ->where('permissionable_type', $role::class)
             ->count();
         $this->assertEquals(0, $m);
 
@@ -89,8 +89,8 @@ class HasPermissionTest extends TestCase
         // assert it now has the permissions
         $m = PermissionModel::query()
             ->whereIn('permission_id', $ids)
-            ->where('model_id', $role->id)
-            ->where('model_type', $role::class)
+            ->where('permissionable_id', $role->id)
+            ->where('permissionable_type', $role::class)
             ->count();
         $this->assertEquals($n, $m);
     }
@@ -315,8 +315,8 @@ class HasPermissionTest extends TestCase
         $rid = $roles->pluck('id');
         $f = fn() => PermissionModel::query()
             ->whereIn('permission_id', $pid)
-            ->whereIn('model_id', $rid)
-            ->where('model_type', $roles->first()::class)
+            ->whereIn('permissionable_id', $rid)
+            ->where('permissionable_type', $roles->first()::class)
             ->count();
 
         Role::addPermissionsToMany($permissions, $roles);
