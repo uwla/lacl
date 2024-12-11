@@ -39,12 +39,14 @@ class HasPermissionPerUserTest extends TestCase
 
         // assert the user does not have the permission
         $this->assertFalse($user->hasPermission($permission));
+        $this->assertFalse($user->hasPermission($permission->name));
 
         // add permission
         $user->addPermission($permission);
 
         // assert the user has the permission
         $this->assertTrue($user->hasPermission($permission));
+        $this->assertTrue($user->hasPermission($permission->name));
     }
 
 
@@ -67,6 +69,9 @@ class HasPermissionPerUserTest extends TestCase
 
         // assert the user does have the permissions
         $this->assertTrue($user->hasPermissions($permissions));
+        $this->assertTrue($user->hasPermissions(
+            $permissions->pluck('name')->toArray())
+        );
     }
 
     /**
@@ -94,8 +99,10 @@ class HasPermissionPerUserTest extends TestCase
         $user = User::factory()->createOne();
         $permission = Permission::factory()->createOne();
         $this->assertFalse($user->hasPermission($permission));
+        $this->assertFalse($user->hasPermission($permission->name));
         $user->addPermission($permission);
         $this->assertTrue($user->hasPermission($permission));
+        $this->assertTrue($user->hasPermission($permission->name));
     }
 
     /**
@@ -108,11 +115,14 @@ class HasPermissionPerUserTest extends TestCase
         $n = $this->n;
         $user = User::factory()->createOne();
         $permissions = Permission::factory($n)->create();
-        $otherPermissions = Permission::factory($n)->create();
-        $mixed = $permissions->merge($otherPermissions);
+        $other_permissions = Permission::factory($n)->create();
+        $mixed = $permissions->merge($other_permissions);
+        $mixed_names = $mixed->pluck('name')->toArray();
         $user->addPermissions($permissions);
         $this->assertFalse($user->hasPermissions($mixed));
+        $this->assertFalse($user->hasPermissions($mixed_names));
         $this->assertTrue($user->hasAnyPermission($mixed));
+        $this->assertTrue($user->hasAnyPermission($mixed_names));
     }
 
     /**
@@ -124,13 +134,13 @@ class HasPermissionPerUserTest extends TestCase
     {
         $n = $this->n;
         $user = User::factory()->createOne();
-        $oldPermissions = Permission::factory($n)->create();
-        $newPermissions = Permission::factory($n)->create();
-        $user->addPermissions($oldPermissions);
-        $this->assertTrue($user->hasPermissions($oldPermissions));
-        $user->setPermissions($newPermissions);
-        $this->assertTrue($user->hasPermissions($newPermissions));
-        $this->assertFalse($user->hasAnyPermission($oldPermissions));
+        $old_permissions = Permission::factory($n)->create();
+        $new_permissions = Permission::factory($n)->create();
+        $user->addPermissions($old_permissions);
+        $this->assertTrue($user->hasPermissions($old_permissions));
+        $user->setPermissions($new_permissions);
+        $this->assertTrue($user->hasPermissions($new_permissions));
+        $this->assertFalse($user->hasAnyPermission($old_permissions));
     }
 
     /**
@@ -145,12 +155,12 @@ class HasPermissionPerUserTest extends TestCase
 
         $user = User::factory()->createOne();
         $permissions = Permission::factory($n)->create();
-        $toDel = $permissions->take($m);
+        $permissions_to_deleted = $permissions->take($m);
 
         $user->addPermissions($permissions);
-        $user->delPermissions($toDel);
+        $user->delPermissions($permissions_to_deleted);
         $this->assertEquals($user->countPermissions(), $n - $m);
-        $this->assertFalse($user->hasAnyPermission($toDel));
+        $this->assertFalse($user->hasAnyPermission($permissions_to_deleted));
     }
 
     /**
