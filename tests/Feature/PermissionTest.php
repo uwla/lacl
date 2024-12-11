@@ -41,6 +41,13 @@ class PermissionTest extends TestCase
         $this->assertTrue($p->count() == 2);
     }
 
+    public function test_create_one_permission_by_name()
+    {
+        $name = 'watch videos';
+        $created = Permission::createOne($name);
+        $this->assertTrue(Permission::where('id', $created->id)->exists());
+    }
+
     public function test_create_permissions_by_name()
     {
         $names = [

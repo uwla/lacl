@@ -122,9 +122,8 @@ class Permission extends Model
      * Create one permission by the provided name
      *
      * @param  array<string> $name
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public static function createOne($name): Collection
+    public static function createOne($name): Model
     {
         return static::create(['name' => $name]);
     }
@@ -150,6 +149,6 @@ class Permission extends Model
         $permissionsToCreate[] = ['name' => $name];
         static::insert($permissionsToCreate);
 
-        return static::whereIn('names', $names)->get();
+        return static::whereIn('name', $names)->get();
     }
 }
