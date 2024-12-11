@@ -98,11 +98,17 @@ class HasPermissionPerUserTest extends TestCase
     {
         $user = User::factory()->createOne();
         $permission = Permission::factory()->createOne();
+        $permission2 = Permission::factory()->createOne();
+
         $this->assertFalse($user->hasPermission($permission));
         $this->assertFalse($user->hasPermission($permission->name));
+
         $user->addPermission($permission);
+
         $this->assertTrue($user->hasPermission($permission));
         $this->assertTrue($user->hasPermission($permission->name));
+        $this->assertFalse($user->hasPermission($permission2));
+        $this->assertFalse($user->hasPermission($permission2->name));
     }
 
     /**
@@ -119,6 +125,7 @@ class HasPermissionPerUserTest extends TestCase
         $mixed = $permissions->merge($other_permissions);
         $mixed_names = $mixed->pluck('name')->toArray();
         $user->addPermissions($permissions);
+
         $this->assertFalse($user->hasPermissions($mixed));
         $this->assertFalse($user->hasPermissions($mixed_names));
         $this->assertTrue($user->hasAnyPermission($mixed));

@@ -328,7 +328,8 @@ trait HasPermission
      */
     public function hasPermission($permission, $resource = null, $id = null)
     {
-        return $this->hasPermissions([$permission], $resource, [$id]);
+        $ids = ($id == null) ? null : [$id];
+        return $this->hasPermissions([$permission], $resource, $ids);
     }
 
     /**

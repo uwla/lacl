@@ -141,14 +141,23 @@ class HasPermissionTest extends TestCase
         $role = Role::factory()->createOne();
         $user = User::factory()->createOne();
         $permission = Permission::factory()->createOne();
+        $permission2 = Permission::factory()->createOne();
 
         $user->addRole($role);
         $this->assertFalse($role->hasPermission($permission));
         $this->assertFalse($user->hasPermission($permission));
 
         $role->addPermission($permission);
+
         $this->assertTrue($role->hasPermission($permission));
         $this->assertTrue($user->hasPermission($permission));
+        $this->assertTrue($role->hasPermission($permission->name));
+        $this->assertTrue($user->hasPermission($permission->name));
+
+        $this->assertFalse($role->hasPermission($permission2));
+        $this->assertFalse($user->hasPermission($permission2));
+        $this->assertFalse($role->hasPermission($permission2->name));
+        $this->assertFalse($user->hasPermission($permission2->name));
     }
 
     /**

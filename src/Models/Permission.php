@@ -69,8 +69,8 @@ class Permission extends Model
             );
         }
 
-        $permissionCount = count($names);
-        if ($permissionCount == 0) {
+        $permission_count = count($names);
+        if ($permission_count == 0) {
             throw new InvalidArgumentException(
                 'No permission provided',
             );
@@ -95,7 +95,7 @@ class Permission extends Model
             );
         }
 
-        if (count($models) != $permissionCount) {
+        if (count($models) != $permission_count) {
             throw new InvalidArgumentException(
                 'number of permissions and models must match'
             );
@@ -106,8 +106,8 @@ class Permission extends Model
         }
 
         // each resource is identified by its model_id
-        $query->where(function ($q) use ($names, $models, $permissionCount) {
-            for ($i = 0; $i < $permissionCount; $i += 1) {
+        $query->where(function ($q) use ($names, $models, $permission_count) {
+            for ($i = 0; $i < $permission_count; $i += 1) {
                 $q->orWhere([
                     ['name', $names[$i]],
                     ['model_id', $models[$i]],
@@ -145,10 +145,11 @@ class Permission extends Model
         }
 
         $permissionsToCreate = [];
-        foreach ($names as $name);
-        $permissionsToCreate[] = ['name' => $name];
-        static::insert($permissionsToCreate);
+        foreach ($names as $name) {
+            $permissionsToCreate[] = ['name' => $name];
+        }
 
+        static::insert($permissionsToCreate);
         return static::whereIn('name', $names)->get();
     }
 }
