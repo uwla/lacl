@@ -105,14 +105,17 @@ class Permission extends Model
             $models = $models->pluck('id');
         }
 
-        // each resource is identified by its model_id
-        $query->where(function ($q) use ($names, $models, $permission_count) {
+        // Each resource is identified by its model_id.
+        // We will build a query that looks like this:
+        // WHERE ((name = ? AND id = ?) OR (name = ? AND id = ?) OR ... )
+        $q1 = $query;
+        $q1->where(function ($q2) use ($names, $models, $permission_count) {
             for ($i = 0; $i < $permission_count; $i += 1) {
-                $q->orWhere([
-                    ['name', $names[$i]],
-                    ['model_id', $models[$i]],
-                ]);
-            }
+                $q2->orWhere(function ($q3) use ($names, $models, $i) {
+                    $q3->where('name', $names[$i])
+                       ->where('model_id', $models[$i]);
+                });
+            };
         });
 
         return $query->get();
